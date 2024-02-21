@@ -12,8 +12,8 @@ total_energy <- function(x) {
 
 energy_scaled <- function(x) {
   l <- tail(x, 1)
-  # measurement time was aimed to be 15s
-  l$acc_energy_mWh * (15 / l$time_since_start_s)
+  # measurement time was aimed to be 30s
+  l$acc_energy_mWh * (30 / l$time_since_start_s)
 }
 
 phase1_measurement <- lapply(phase1_measurement, total_energy)
@@ -40,15 +40,21 @@ setwd("..")
 
 png(filename = "average_energy_ssh.png")
 
-layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+par(mfrow=c(2,2))
 barplot(
   c(p1_energy_mean, p2_energy_mean),
-  names.arg = c("SSH ja tuloste", "SSH ilman tulostetta"),
-  xlab = "Koevaihe",
-  ylab = "Energiankulutuksen keskiarvo (mWh)"
+  xlab = "Tuloste (vasen) vs ei tulostetta (oikea)",
+  ylab = "Energiankulutuksen keskiarvo (mWh)",
+  ylim = c(0, max(p1_energy_mean, p2_energy_mean) + 1)
 )
+
+plot(append(p1_energy, p2_energy),
+     append(p1_transmit_means, p2_transmit_means),
+     xlab = "Energiankulutus (mWh)",
+     ylab = "Kaistanleveyden keskiarvo (Bps)")
 
 boxplot(p1_transmit_means, xlab = "SSH ja tuloste", ylab = "Kaistanleveyden keskiarvo per koe (Bps)")
 boxplot(p2_transmit_means, xlab = "SSH ilman tulostetta", ylab = "Kaistanleveyden keskiarvo per koe (Bps)")
+
 
 dev.off()

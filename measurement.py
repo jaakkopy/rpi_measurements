@@ -43,8 +43,10 @@ def get_measurements(sock):
             continue
         return r
 
+
 def print_values(t, v, c, p, e):
     print(f"{round(t, 3)},{v},{c},{p},{e}")
+
 
 def main(addr: str, loop_time: float, poll_wait: float):
     signal.signal(signal.SIGINT, interrupt) 
@@ -67,7 +69,7 @@ def main(addr: str, loop_time: float, poll_wait: float):
             sleep(max(0, loop_time - t - DATA_DUMP_WAIT))
         r = get_measurements(sock)
         t = time() - start
-        print_values(round(t, 3), *unpack_vcpe(r))
+        print_values(t, *unpack_vcpe(r))
     sock.close()
 
 

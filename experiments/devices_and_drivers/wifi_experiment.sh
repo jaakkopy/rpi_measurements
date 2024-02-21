@@ -4,7 +4,7 @@ user=$1
 host=$2
 bluetooth_addr=$3
 
-# Disable WiFi with rfkill
+# Disable WiFi with rfkill (in background to prevent blocking this thread)
 ssh ${user}@${host} "sudo rfkill block wifi" &
 # Sleep for a bit to make sure the command is completed
 sleep 2
