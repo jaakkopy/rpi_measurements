@@ -15,6 +15,8 @@ idle_energy_scaled <- sapply(idle_state_data, function(x) (tail(x$acc_energy_mWh
 idle_mean_currents <- sapply(idle_state_data, function(x) mean(x$current_mA))
 idle_mean_voltages <- sapply(idle_state_data, function(x) mean(x$voltage_mV))
 
+setwd("../../devices_and_drivers")
+
 # Smummaries
 summary(energy_scaled)
 summary(mean_currents)
