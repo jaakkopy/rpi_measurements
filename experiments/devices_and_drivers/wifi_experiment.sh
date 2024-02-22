@@ -12,7 +12,7 @@ sleep 2
 kill -9 $(ps -aux | grep ssh | grep -v grep | awk '{ print $2 }')
 
 # Start the measurements with the Wifi being blocked
-for i in {1..30}
+for i in {1..50}
 do
     python ../../measurement.py ${bluetooth_addr} 30 1 > ./measurement_data/wifi_iter${i}.csv
     sleep 5

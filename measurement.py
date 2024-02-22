@@ -45,7 +45,8 @@ def get_measurements(sock):
 
 
 def print_values(t, v, c, p, e):
-    print(f"{round(t, 3)},{v},{c},{p},{e}")
+    # NOTE: UM25C returns the amps as 1/10 milliamps. Divide by 10 to get milliamps
+    print(f"{round(t, 3)},{v},{c / 10},{p},{e}")
 
 
 def main(addr: str, loop_time: float, poll_wait: float):

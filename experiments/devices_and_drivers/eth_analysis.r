@@ -1,6 +1,6 @@
 setwd("./measurement_data")
 
-data <- lapply(list.files(pattern = "wifi*"), read.csv)
+data <- lapply(list.files(pattern = "^eth*"), read.csv)
 
 setwd("..")
 
