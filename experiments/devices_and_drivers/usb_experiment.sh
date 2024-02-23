@@ -9,9 +9,4 @@ ssh ${user}@${host} "for x in $(ls /sys/bus/usb/drivers/usb | grep '[0-9]+-[0-9]
 # Sleep for a bit to make sure the command takes effect
 sleep 2
 
-# Collect the samples 
-for i in {1..50}
-do
-    python ../../measurement.py ${bluetooth_addr} 30 1 > ./measurement_data/usb_iter${i}.csv
-    sleep 5
-done
+/bin/bash ./take_measurements.sh ${bluetooth_addr} measurement_data usb_iter
