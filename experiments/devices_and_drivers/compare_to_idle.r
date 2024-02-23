@@ -1,7 +1,7 @@
 setwd("./measurement_data")
 
 # Get the pattern for the files to read
-pattern <- readline();
+pattern <- readline()
 
 data <- lapply(list.files(pattern = pattern), read.csv)
 
