@@ -53,7 +53,12 @@ def main(addr: str, loop_time: float, poll_wait: float):
     signal.signal(signal.SIGINT, interrupt) 
     sock = None
     sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    sock.connect((addr, 1))
+    for tries in range(3):
+        try:
+            sock.connect((addr, 1))
+            break
+        except:
+            sleep(1)
     # Remove the necessary wait time between a data dump request and the reading of the result from the poll time
     poll_wait = max(0, poll_wait - DATA_DUMP_WAIT)
     print("time_since_start_s,voltage_mV,current_mA,power_mW,acc_energy_mWh")
