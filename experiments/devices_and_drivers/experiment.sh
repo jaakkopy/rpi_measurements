@@ -9,12 +9,13 @@ configfile=/boot/firmware/config.txt
 
 
 # Settings:
-# 1. Ethernet
-# 2. WiFi
-# 3. Bluetooth
-# 4. HMDI
-# 5. PCIE
-# 6. USB
+# USB
+# Ethernet
+# WiFi
+# Bluetooth
+# HMDI
+# CPU
+# All
 
 
 echo Start state
@@ -22,6 +23,17 @@ echo Start state
 
 # Start state: Basic state without modifications. Ethernet cable should be plugged and WiFi should be enabled.
 /bin/bash ./take_measurements.sh ${bluetooth_addr} start
+
+
+echo Disabling USB devices 
+
+
+# USB controller
+ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
+sleep 10
+/bin/bash ./take_measurements.sh ${bluetooth_addr} no_usb
+ssh ${user}@${host} "sudo reboot"
+sleep ${reboot_wait}
 
 
 echo Disabling Ethernet
@@ -68,41 +80,27 @@ sleep ${reboot_wait}
 /bin/bash ./take_measurements.sh ${bluetooth_addr} no_hdmi
 
 
-echo Disabling PCIE interface 
+echo Disabling CPUs
 
 
-# Remove the HDMI setting, add setting for PCIE, and reboot
-ssh ${user}@${host} "sudo sed -i '$ d' $configfile; echo 'pcie=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
+# Remove the HDMI setting, add the CPU setting (by replacing cmdline.txt with another file, which has the option set), and reboot
+ssh ${user}@${host} "sudo sed -i '$ d' $configfile; sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt; sudo reboot"
 sleep ${reboot_wait}
 
 
-# PCIE 
-/bin/bash ./take_measurements.sh ${bluetooth_addr} no_pcie
-
-
-# Remove the PCIE setting and reboot
-ssh ${user}@${host} "sudo sed -i '$ d' $configfile; sudo reboot"
-sleep ${reboot_wait}
-
-
-echo Disabling USB devices 
-
-
-# USB devices
-ssh ${user}@${host} "for x in $(ls /sys/bus/usb/drivers/usb | grep '[0-9]+-[0-9]+'); do echo '${x}' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null; done"
-sleep 10
-/bin/bash ./take_measurements.sh ${bluetooth_addr} no_usb
+# CPU
+/bin/bash ./take_measurements.sh ${bluetooth_addr} disabled_cpus
 
 
 echo Disabling all
 
 
-# All the previously mentioned settings at once
-# WiFi, Bluetooth, HDMI, PCIE
-ssh ${user}@${host} "printf 'dtoverlay=disable-wifi\ndtoverlay=disable-bt\nhdmi=off\npcie=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
+# All the previously mentioned settings at once (cpu setting is already on)
+# WiFi, Bluetooth, HDMI
+ssh ${user}@${host} "printf 'dtoverlay=disable-wifi\ndtoverlay=disable-bt\nhdmi=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
 sleep ${reboot_wait}
 # USB
-ssh ${user}@${host} "for x in $(ls /sys/bus/usb/drivers/usb | grep '[0-9]+-[0-9]+'); do echo '${x}' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null; done"
+ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
 # Ethernet
 ssh ${user}@${host} "sudo ifconfig eth0 down" &
 sleep 10

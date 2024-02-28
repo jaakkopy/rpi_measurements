@@ -1,70 +1,32 @@
+
+cols <- c("governor",
+          "task_size",
+          "task_interval",
+          "time_since_start_s",
+          "voltage_mV",
+          "current_mA",
+          "power_mW",
+          "acc_energy_mWh",
+          "mean_cpu_utilization")
+
+df <- data.frame(matrix(ncol = length(cols), nrow = 0))
+colnames(df) <- cols
+
 setwd("./measurement_data")
 
-freqs <- c(6:18)
-freq_strs <- lapply(freqs, function(x) paste(x, "00000", sep=""))
-
-idle_data <- lapply(freq_strs, function(f) lapply(list.files(pattern = paste("idle-freq-", f, "*", sep = "")), read.csv))
-names(idle_data) <- freq_strs
-
-setwd("..")
-
-mean_currents <- lapply(idle_data, function(x) {
-  mean(sapply(x, function(y) {
-    mean(y$current_mA)
-  }))
-})
-
-mean_voltages <- lapply(idle_data, function(x) {
-  mean(sapply(x, function(y) {
-    mean(y$voltage_mV)
-  }))
-})
-
-energies <- lapply(idle_data, function(x) {
-  sapply(x, function(y) {
-    (tail(y$acc_energy_mWh, 1) - y$acc_energy_mWh[[1]]) * 30 / tail(y$time_since_start_s, 1)
-  })
-})
-
-mean_energies <- lapply(energies, mean)
-
-for (x in freq_strs) {
-    print(x)
-    print(mean_currents[[x]])
-    print(mean_voltages[[x]])
-    print(mean_energies[[x]])
+for (size in c(2, 4, 8)) {
+  for (interval in c(1, 2, 3)) {
+    for (gov in c("conservative", "ondemand", "powersave", "performance")) {
+      for (i in c(1:50)) {
+        f <- paste(gov, "-", size, "-", interval, "-iter", i, ".csv", sep = "")
+        measurements <- read.csv(f)
+        utilization <- read.csv(paste("./utilization/", f, sep = ""))
+        measurements$mean_cpu_utilization <- rep(mean(utilization$cpu_utilization_percentage), times = length(measurements$time_since_start_s))
+        df <- rbind(df, measurements)
+      }
+    }
+  }
 }
 
-prev <- freq_strs[[1]]
-for (x in freq_strs[c(2:length(freq_strs))]) {
-    print(t.test(energies[[prev]], energies[[x]]))
-    prev <- x
-}
-
-
-png("energy_current_voltage_vs_frequency.png")
-
-par(mfrow=c(1,3))
-plot(freqs/10,
-     mean_energies,
-     yaxt = "n",
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Energiankulutuksen keskiarvo (mWh)")
-axis(2, seq(floor(min(unlist(mean_energies))), ceiling(max(unlist(mean_energies))), 0.5))
-lines(freqs/10, mean_energies)
-
-plot(freqs/10,
-     mean_currents,
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Virrankulutuksen keskiarvojen keskiarvo (mA)")
-lines(freqs/10, mean_currents)
-
-plot(freqs/10,
-     mean_voltages,
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Jännitteen keskiarvojen keskiarvo (mV)")
-lines(freqs/10, mean_voltages)
-
-dev.off()
-
-cor(freqs, unlist(mean_energies))
+# to be continued
+# check out: https://plotly.com/r/3d-scatter-plots/

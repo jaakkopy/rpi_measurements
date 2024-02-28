@@ -15,11 +15,8 @@ do
     # Set the frequency
     ssh ${user}@${host} "echo $x | sudo tee /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed > /dev/null;"
     # Collect samples
-    for i in {1..50}
-    do
-        python ../../measurement.py ${bluetooth_addr} 30 1 > ./measurement_data/idle-freq-$x-iter-$i.csv
-        sleep 10
-    done
+    python ../../measurement.py ${bluetooth_addr} 1500 1 > ./measurement_data/idle-freq-$x.csv
+    sleep 15
 done
 
 # Reset the governor to ondemand (default) after the experiment is done
