@@ -1,70 +1,59 @@
-setwd("./measurement_data/idle")
+setwd("./measurement_data")
+cols <- c("time_since_start_s",
+          "voltage_mV",
+          "current_mA",
+          "power_mW",
+          "acc_energy_mWh",
+          "i",
+          "freq_MHz")
 
+df <- data.frame(matrix(ncol = length(cols), nrow = 0))
+colnames(df) <- cols
 freqs <- c(6:18)
-freq_strs <- lapply(freqs, function(x) paste(x, "00000", sep=""))
-
-idle_data <- lapply(freq_strs, function(f) lapply(list.files(pattern = paste("idle-freq-", f, "*", sep = "")), read.csv))
-names(idle_data) <- freq_strs
-
-setwd("../..")
-
-mean_currents <- lapply(idle_data, function(x) {
-  mean(sapply(x, function(y) {
-    mean(y$current_mA)
-  }))
-})
-
-mean_voltages <- lapply(idle_data, function(x) {
-  mean(sapply(x, function(y) {
-    mean(y$voltage_mV)
-  }))
-})
-
-energies <- lapply(idle_data, function(x) {
-  sapply(x, function(y) {
-    (tail(y$acc_energy_mWh, 1) - y$acc_energy_mWh[[1]]) * 30 / tail(y$time_since_start_s, 1)
-  })
-})
-
-mean_energies <- lapply(energies, mean)
-
-for (x in freq_strs) {
-    print(x)
-    print(mean_currents[[x]])
-    print(mean_voltages[[x]])
-    print(mean_energies[[x]])
+for (f in freqs) {
+  filename <- paste("idle-freq-", f, "00000.csv", sep="")
+  d <- read.csv(filename)
+  d$i <- c(1:nrow(d))
+  d$freq_MHz <- rep(f/10, times = nrow(d))
+  df <- rbind(df, d)
 }
+setwd("..")
 
-prev <- freq_strs[[1]]
-for (x in freq_strs[c(2:length(freq_strs))]) {
-    print(t.test(energies[[prev]], energies[[x]]))
-    prev <- x
-}
+library(ggplot2)
+library(dplyr)
+require(gridExtra)
 
+#p1 <- ggplot(data = df, aes(x = i, y = power_mW, colour = freq_MHz)) +
+#  geom_point() +
+#  labs(x = "Mittaus", y = "Teho (mW)", color = "Taajuus (MHz)")
+#
+#p1
 
-png("energy_current_voltage_vs_frequency.png")
+p1 <- df %>%
+  group_by(freq_MHz) %>%
+  summarize(m = mean(power_mW)) %>%
+  ggplot(aes(x = freq_MHz, y = m)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Kellotaajuus (MHz)", y = "Tehon keskiarvo (mW)")
 
-par(mfrow=c(1,3))
-plot(freqs/10,
-     mean_energies,
-     yaxt = "n",
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Energiankulutuksen keskiarvo (mWh)")
-axis(2, seq(floor(min(unlist(mean_energies))), ceiling(max(unlist(mean_energies))), 0.5))
-lines(freqs/10, mean_energies)
+p1
 
-plot(freqs/10,
-     mean_currents,
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Virrankulutuksen keskiarvojen keskiarvo (mA)")
-lines(freqs/10, mean_currents)
+p2 <- df %>% 
+  group_by(freq_MHz) %>% 
+  ggplot(aes(x = freq_MHz, y = power_mW, group = freq_MHz, fill = freq_MHz)) +
+  geom_boxplot() +
+  labs(x = "Kellotaajuus (MHz)", y = "Teho (mW)", fill = "Taajuus (MHz)")
 
-plot(freqs/10,
-     mean_voltages,
-     xlab = "Kellotaajuus (MHz)",
-     ylab = "Jännitteen keskiarvojen keskiarvo (mV)")
-lines(freqs/10, mean_voltages)
+p2
 
+png("idle_freq_graphs.png")
+grid.arrange(p1, p2, nrow = 2)
 dev.off()
 
-cor(sapply(names(mean_energies), as.integer), unlist(mean_energies))
+for (f in freqs) {
+  print(f)
+  print(summary(df[df$freq_MHz == f/10,]$power_mW))
+}
+
+kruskal.test(lapply(freqs, function(f) df[df$freq_MHz == f/10,]$power_mW))
