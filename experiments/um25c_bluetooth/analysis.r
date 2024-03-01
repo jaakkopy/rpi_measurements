@@ -61,14 +61,15 @@ require(gridExtra)
 
 p1 <- ggplot(data = means, aes(y = mean, x = time)) +
   geom_bar(stat = "identity") +
+  scale_x_discrete(limits = c("1s", "5s", "10s", "15s")) +
   labs(x = "Kyselytiheys (s)", y = "Energiankulutus 30s jaksolta (mWh)")
 
 p1
 
-p2 <- ggplot(data = stack(data.frame("1" = p1_energy,
-                               "5" = p2_energy,
-                               "10" = p3_energy,
-                               "15" = p4_energy,
+p2 <- ggplot(data = stack(data.frame("1s" = p1_energy,
+                               "5s" = p2_energy,
+                               "10s" = p3_energy,
+                               "15s" = p4_energy,
                                check.names = FALSE)),
              aes(x = ind, y = values)
             ) +

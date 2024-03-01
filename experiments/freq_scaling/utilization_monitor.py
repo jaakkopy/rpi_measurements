@@ -1,5 +1,5 @@
 import signal
-from time import sleep
+from time import sleep, time
 
 
 keep_measuring = True
@@ -29,20 +29,23 @@ if __name__ == "__main__":
     signal.signal(signal.SIGUSR1, catch_sigusr1) 
 
     utilization = []
+    times = []
     (user, nice, system, idle) = read_proc_stat(cpu)
     last_busy = user + nice + system
     last_total = last_busy + idle
 
+    start = time()
     while keep_measuring:
         sleep(interval)
         (user, nice, system, idle) = read_proc_stat(cpu)
         busy = user + nice + system
         total = busy + idle
         utilization.append( (busy - last_busy) / (total - last_total) * 100 )
+        times.append(round(time() - start, 3))
         last_busy = busy
         last_total = total
     
     with open(out_file, "w") as f:
-        f.write("cpu_utilization_percentage\n")
-        for u in utilization:
-            f.write(f"{round(u, 3)}\n")
+        f.write("time_s,cpu_utilization_percentage\n")
+        for i in range(len(utilization)):
+            f.write(f"{times[i]},{round(utilization[i], 3)}\n")

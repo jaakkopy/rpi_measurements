@@ -1,70 +1,52 @@
-setwd("./measurement_data")
+file_prefix <- c("start", "no_wifi", "no_usb", "no_hdmi", "no_eth", "no_bt", "disabled_cpus", "all")
+phases <- c("Alku", "WiFi", "USB", "HDMI", "ETH", "BT", "CPU", "Kaikki")
 
-measurements <- lapply(c("^start*", "^no_eth*", "^no_wifi*", "^no_bt*", "^no_hdmi*", "^no_pcie*", "^no_usb*", "^all*"), function(x) {
-  lapply(list.files(pattern = x), read.csv)
-})
-names(measurements) <- c("Alku",
-                         "Ethernet",
-                         "WiFi",
-                         "BT",
-                         "HDMI",
-                         "PCIE",
-                         "USB",
-                         "Kaikki")
+measurements <- lapply(file_prefix, function(x) read.csv(paste("./measurement_data/", x, ".csv", sep = "")))
 
-setwd("..")
+names(measurements) <- phases
 
-measure_time <- 30
-
-energies <- lapply(measurements, function(x) {
-  sapply(x, function(y) {
-    (tail(y$acc_energy_mWh, 1) - y$acc_energy_mWh[[1]]) * measure_time / tail(y$time_since_start_s, 1)
-  })
-})
-
-mean_currents <- lapply(measurements, function(x) {
-  sapply(x, function(y) mean(y$current_mA))
-})
-
-mean_voltages <- lapply(measurements, function(x) {
-  sapply(x, function(y) mean(y$voltage_mV))
-})
-
-
-print("Energy")
-for (x in names(measurements)) {
+for (x in phases) {
   print(x)
-  print(summary(energies[[x]]))
+  print(mean(measurements[[x]]$power_mW))
+  print( (mean(measurements[[x]]$power_mW) / mean(measurements[["Alku"]]$power_mW) - 1) * 100 )
+  print(t.test(measurements[[x]]$power_mW, measurements[["Alku"]]$power_mW))
 }
 
-print("Current")
-for (x in names(measurements)) {
-  print(x)
-  print(summary(mean_currents[[x]]))
-}
-
-print("Voltage")
-for (x in names(measurements)) {
-  print(x)
-  print(summary(mean_voltages[[x]]))
-}
-
-print("Mean energy consumption change percentage compared to start state")
-for (x in names(measurements)) {
-  print(x)
-  print((mean(energies[[x]]) / mean(energies[["Alku"]]) - 1) * 100)
-}
-
-print("Two sided T-test of energy consumption samples compared to start state. confidence level 0.95")
-for (x in names(measurements)) {
-  print(x)
-  print(t.test(energies[[x]], energies[["Alku"]], conf.level = 0.95))
+df <- measurements[["Alku"]]
+df$vaihe <- rep("Alku", times = length(nrow(start)))
+df$i <- c(1:nrow(df))
+for (x in phases[c(2:length(phases))]) {
+  p <- measurements[[x]]
+  p$vaihe <- rep(x, times = length(nrow(p)))
+  p$i <- c(1:nrow(p))
+  df <- rbind(df, p)
 }
 
 
-png("devices_bars.png")
+library(ggplot2)
+library(dplyr)
+require(gridExtra)
 
-means <- sapply(energies, mean)
-barplot(sort(means), ylim = c(0, max(means) + 1), ylab = "Energiankulutus (mWh)")
+p1 <- ggplot(data = df, aes(x = i, y = power_mW, colour = vaihe)) +
+  geom_point() +
+  labs(x = "Mittaus", y = "Teho (mW)")
 
+p1
+
+ordered_by_power <- lapply(phases, function(x) mean(df[df$vaihe == x,]$power_mW))
+names(ordered_by_power) <- phases
+ordered_by_power <- ordered_by_power[order(unlist(ordered_by_power))]
+
+p2 <- df %>% 
+  group_by(vaihe) %>%
+  summarize(m = mean(power_mW)) %>%
+  ggplot(aes(x = vaihe, y = m)) +
+  geom_bar(stat = "identity") +
+  scale_x_discrete(limits = names(ordered_by_power)) +
+  labs(x = "Vaihe", y = "Tehon keskiarvo (mW)")
+
+p2
+
+png("devices_graphs.png")
+grid.arrange(p1, p2, ncol=2)
 dev.off()

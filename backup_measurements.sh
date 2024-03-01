@@ -1,0 +1,1 @@
+tar -czvf backup_measurements.tar.gz ./experiments/um25c_bluetooth/measurement_data ./experiments/ssh_network/*_data ./experiments/devices_and_drivers/*_data ./experiments/freq_scaling/*_data

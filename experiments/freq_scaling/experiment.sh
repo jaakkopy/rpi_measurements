@@ -7,7 +7,8 @@ bluetooth_addr=$3  # measurement device bluetooth address
 # How many jobs to simulate
 amount_jobs=1000
 
-for x in "conservative" "ondemand" "powersave" "performance"
+#for x in "conservative" "ondemand" "powersave" "performance"
+for x in "performance"
 do
     # Set the governor 
     ssh ${user}@${host} "echo $x | sudo tee /sys/devices/system/cpu/cpufreq/policy0/scaling_governor > /dev/null;"
