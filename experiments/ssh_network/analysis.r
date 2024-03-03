@@ -41,12 +41,18 @@ p1 <- ggplot(data = phases, aes(x = i, y = power_mW, colour = vaihe)) +
 
 p1
 
-p2 <- ggplot(data = band, aes(x = vaihe, y = transmit_bandwidth_bytes_per_s, colour = vaihe)) +
+p2 <- ggplot(data = phases, aes(x = vaihe, y = power_mW, colour = vaihe)) +
   geom_boxplot() +
-  labs(x = "Vaihe", y = "Transmission kaistanleveys (Bps)")
+  labs(x = "Vaihe", y = "Teho (mW)")
 
 p2
 
+p3 <- ggplot(data = band, aes(x = vaihe, y = transmit_bandwidth_bytes_per_s, colour = vaihe)) +
+  geom_boxplot() +
+  labs(x = "Vaihe", y = "Transmission kaistanleveys (Bps)")
+
+p3
+
 png("power_and_transmission_bw.png")
-grid.arrange(p1, p2, ncol=2)
+grid.arrange(p1, p2, p3, ncol=2)
 dev.off()

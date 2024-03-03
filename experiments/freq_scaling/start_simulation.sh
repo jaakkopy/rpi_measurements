@@ -6,7 +6,7 @@ counter=$3
 outputfile=$4
 
 # Start the utilization monitor in the background on cpu 1 and make it monitor cpu 0
-taskset --cpu-list 1 python ./utilization_monitor.py cpu0 ${interval} ${outputfile} &
+taskset --cpu-list 1 python ./utilization_monitor.py cpu0 1 ${outputfile} &
 
 monitor_program_id=$!
 

@@ -13,7 +13,7 @@ for (x in phases) {
 }
 
 df <- measurements[["Alku"]]
-df$vaihe <- rep("Alku", times = length(nrow(start)))
+df$vaihe <- rep("Alku", times = length(nrow(measurements[["Alku"]])))
 df$i <- c(1:nrow(df))
 for (x in phases[c(2:length(phases))]) {
   p <- measurements[[x]]
@@ -27,15 +27,17 @@ library(ggplot2)
 library(dplyr)
 require(gridExtra)
 
-p1 <- ggplot(data = df, aes(x = i, y = power_mW, colour = vaihe)) +
-  geom_point() +
-  labs(x = "Mittaus", y = "Teho (mW)")
-
-p1
 
 ordered_by_power <- lapply(phases, function(x) mean(df[df$vaihe == x,]$power_mW))
 names(ordered_by_power) <- phases
 ordered_by_power <- ordered_by_power[order(unlist(ordered_by_power))]
+
+p1 <- ggplot(data = df, aes(x = vaihe, y = power_mW, colour = vaihe)) +
+  geom_boxplot() +
+  scale_x_discrete(limits = names(ordered_by_power)) +
+  labs(x = "Vaihe", y = "Teho (mW)")
+
+p1
 
 p2 <- df %>% 
   group_by(vaihe) %>%
@@ -48,5 +50,5 @@ p2 <- df %>%
 p2
 
 png("devices_graphs.png")
-grid.arrange(p1, p2, ncol=2)
+grid.arrange(p1, p2, nrow=2)
 dev.off()
