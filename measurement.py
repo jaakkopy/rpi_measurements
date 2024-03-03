@@ -46,7 +46,7 @@ def get_measurements(sock):
 
 def print_values(t, v, c, p, e):
     # NOTE: UM25C returns the amps as 1/10 milliamps. Divide by 10 to get milliamps
-    print(f"{round(t, 3)},{v},{c / 10},{p},{e}")
+    print(f"{t},{v},{c / 10},{p},{e}")
 
 
 def main(addr: str, loop_time: float, poll_wait: float):
@@ -65,20 +65,22 @@ def main(addr: str, loop_time: float, poll_wait: float):
         raise RuntimeError("Failed to connect to the measurement device")
     # Remove the necessary wait time between a data dump request and the reading of the result from the poll time
     poll_wait = max(0, poll_wait - DATA_DUMP_WAIT)
-    print("time_since_start_s,voltage_mV,current_mA,power_mW,acc_energy_mWh")
+    print("time_s,voltage_mV,current_mA,power_mW,acc_energy_mWh")
     # First measurement at time 0
     r = get_measurements(sock)
-    print_values(0, *unpack_vcpe(r))
+    t = time()
+    print_values(t, *unpack_vcpe(r))
     # Start the timer
-    start = time()
-    t = 0 
-    while t < loop_time and keep_looping:
-        if t + poll_wait < loop_time:
+    start = t
+    dt = 0 
+    while dt < loop_time and keep_looping:
+        if dt + poll_wait < loop_time:
             sleep(poll_wait)
         else:
             sleep(max(0, loop_time - t - DATA_DUMP_WAIT))
         r = get_measurements(sock)
-        t = time() - start
+        t = time()
+        dt = t - start
         print_values(t, *unpack_vcpe(r))
     sock.close()
 

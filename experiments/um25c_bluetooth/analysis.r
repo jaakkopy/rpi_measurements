@@ -5,7 +5,7 @@ phase3 <- lapply(list.files(pattern = "^10s_*"), read.csv)
 phase4 <- lapply(list.files(pattern = "^15s_*"), read.csv)
 setwd("..")
 
-energy_scaled <- function(x) (tail(x$acc_energy_mWh, 1) - x$acc_energy_mWh[[1]]) * (30 / tail(x$time_since_start_s, 1))
+energy_scaled <- function(x) (max(x$acc_energy_mWh) - min(x$acc_energy_mWh)) * (30 / (max(x$time_s) - min(x$time_s)))
 
 p1_energy <- sapply(phase1, energy_scaled)
 p2_energy <- sapply(phase2, energy_scaled)

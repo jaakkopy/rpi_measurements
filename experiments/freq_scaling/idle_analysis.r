@@ -1,5 +1,5 @@
 setwd("./measurement_data")
-cols <- c("time_since_start_s",
+cols <- c("time_s",
           "voltage_mV",
           "current_mA",
           "power_mW",
@@ -22,12 +22,6 @@ setwd("..")
 library(ggplot2)
 library(dplyr)
 require(gridExtra)
-
-#p1 <- ggplot(data = df, aes(x = i, y = power_mW, colour = freq_MHz)) +
-#  geom_point() +
-#  labs(x = "Mittaus", y = "Teho (mW)", color = "Taajuus (MHz)")
-#
-#p1
 
 p1 <- df %>%
   group_by(freq_MHz) %>%

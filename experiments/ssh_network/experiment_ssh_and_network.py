@@ -30,27 +30,27 @@ def main(loop_time: float, check_interval: float, interface: str, out_file: str,
     last_received = br
     last_transmit = bt
     i = 0
-    t = 0 
+    dt = 0 
     start = time()
-    current = start
-    while t < loop_time + check_interval:
+    t = start
+    while dt < loop_time + check_interval:
         (br, bt) = read_pnd(interface)
         RR.append( (br - last_received) / check_interval )
         RT.append( (bt - last_transmit) / check_interval )
         last_received = br
         last_transmit = bt
-        T.append(current - start)
+        T.append(t)
         i += 1
         if should_print == 'y':
-            print(t)
+            print(dt)
             stdout.flush() # To prevent buffering.
         sleep(check_interval)
-        current = time()
-        t = current - start
+        t = time()
+        dt = t - start
     with open(out_file, "w") as f:
-        f.write("time_since_start_s,receive_bandwidth_bytes_per_s,transmit_bandwidth_bytes_per_s\n")
+        f.write("time_s,receive_bandwidth_bytes_per_s,transmit_bandwidth_bytes_per_s\n")
         for j in range(1, i):
-            f.write(f"{round(T[j], 3)},{RR[j]},{RT[j]}\n")
+            f.write(f"{T[j]},{RR[j]},{RT[j]}\n")
 
 
 if __name__ == "__main__":

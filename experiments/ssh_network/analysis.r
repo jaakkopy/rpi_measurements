@@ -25,14 +25,14 @@ sd(phase2_bandwidth$transmit_bandwidth_bytes_per_s)
 library(ggplot2)
 require(gridExtra)
 
-phase1$vaihe <- rep("1", times = length(phase1$time_since_start_s))
-phase1$i <- c(1:length(phase1$time_since_start_s))
-phase2$vaihe <- rep("2", times = length(phase2$time_since_start_s))
-phase2$i <- c(1:length(phase2$time_since_start_s))
+phase1$vaihe <- rep("1", times = nrow(phase1))
+phase1$i <- c(1:nrow(phase1))
+phase2$vaihe <- rep("2", times = nrow(phase2))
+phase2$i <- c(1:nrow(phase2))
 phases <- rbind(phase1, phase2)
 
-phase1_bandwidth$vaihe <- rep("1", times = length(phase1_bandwidth$time_since_start_s))
-phase2_bandwidth$vaihe <- rep("2", times = length(phase2_bandwidth$time_since_start_s))
+phase1_bandwidth$vaihe <- rep("1", times = nrow(phase1))
+phase2_bandwidth$vaihe <- rep("2", times = nrow(phase2))
 band <- rbind(phase1_bandwidth, phase2_bandwidth)
 
 p1 <- ggplot(data = phases, aes(x = i, y = power_mW, colour = vaihe)) +

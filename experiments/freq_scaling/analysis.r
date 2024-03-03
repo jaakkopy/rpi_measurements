@@ -1,7 +1,7 @@
 cols <- c("governor",
           "task_size",
           "task_interval",
-          "time_since_start_s",
+          "time_s",
           "voltage_mV",
           "current_mA",
           "power_mW",
@@ -24,7 +24,9 @@ for (size in c(2, 4, 8, 16)) {
       measurements$task_size <- rep(size, times = nrow(measurements))
       measurements$task_interval <- rep(interval, times = nrow(measurements))
       utilization <- read.csv(paste("./utilization/", f, sep = ""))
-      measurements$cpu_utilization <- utilization$cpu_utilization_percentage[c(1:nrow(measurements))]
+      utilization$time_s <- floor(utilization$time_s)
+      measurements$time_s <- floor(measurements$time_s)
+      measurements <- merge(measurements, utilization, by = "time_s", sort = TRUE)
       df <- rbind(df, measurements)
     }
   }
@@ -32,39 +34,20 @@ for (size in c(2, 4, 8, 16)) {
 
 setwd("..")
 
-least_power <- list(conservative = 0, ondemand = 0, powersave = 0, performance = 0)
-least_energy <- list(conservative = 0, ondemand = 0, powersave = 0, performance = 0)
-fastest <- list(conservative = 0, ondemand = 0, powersave = 0, performance = 0)
-
 summarized <- data.frame(matrix(ncol = 6, nrow = 0))
 colnames(summarized) <- c("task_size", "task_interval", "mean_power", "total_energy", "mean_utilization", "governor")
 
-print("task_size,interval,governor,mean_power,mean_utilization,time_taken")
+print("task_size,interval,conservative,ondemand,powersave,performance")
 for (size in c(2, 4, 8, 16)) {
   for (interval in c(1, 2, 3)) {
-    least_p <- -1
-    least_p_gov <- ""
-    least_e <- -1
-    least_e_gov <- ""
-    fastest_time <- -1
-    fastest_gov <- ""
+    
+    values <- list()
+
     for (gov in governors) {
       entry <- df[df$governor == gov & df$task_size == size & df$task_interval == interval,]
       mean_power <- mean(entry$power_mW)
-      time_taken <- tail(entry$time_since_start_s, 1) - head(entry$time_since_start_s, 1)
-      total_energy <- tail(entry$acc_energy_mWh, 1) - head(entry$acc_energy_mWh, 1)
-      if (least_p == -1 || mean_power < least_p) {
-        least_p <- mean_power
-        least_p_gov <- gov
-      }
-      if (fastest_time == -1 || time_taken < fastest_time) {
-        fastest_time <- time_taken
-        fastest_gov <- gov
-      }
-      if (least_e == -1 || total_energy < least_e) {
-        least_e <- total_energy
-        least_e_gov <- gov
-      }
+      total_energy <- max(entry$acc_energy_mWh) - min(entry$acc_energy_mWh)
+
       summarized <- rbind(summarized,
                           list(task_size = size,
                                task_interval = interval,
@@ -73,24 +56,46 @@ for (size in c(2, 4, 8, 16)) {
                                mean_utilization = mean(entry$cpu_utilization),
                                governor = gov))
 
-      print(paste(size,interval,gov,round(mean_power, 3),round(mean(entry$cpu_utilization), 3), round(time_taken, 3), sep = ","))
+      values[[gov]] <- list(mean_power = round(mean_power, 2),
+                            mean_utilization = round(mean(entry$cpu_utilization), 2),
+                            total_energy = total_energy)
     }
-    least_power[[least_p_gov]] <- least_power[[least_p_gov]] + 1
-    least_energy[[least_e_gov]] <- least_energy[[least_e_gov]] + 1
-    fastest[[fastest_gov]] <- fastest[[fastest_gov]] + 1
+
+    cat(paste(size, interval, sep = ","))
+    for (gov in governors) {
+      m <- values[[gov]][["mean_power"]]
+      u <- values[[gov]][["mean_utilization"]]
+      e <- values[[gov]][["total_energy"]]
+      cat(paste(",", paste(m, "mW"), paste(u, "%"), paste(e, "mWh"), sep = "|"))
+    }
+    print("")
   }
 }
 
-print(least_power)
-print(least_energy)
-print(fastest)
+# Least energy per case
+for (size in c(2, 4, 8, 16)) {
+  for (interval in c(1, 2, 3)) {
+    least_e <- -1
+    g <- ""
+    for (gov in governors) {
+      entry <- df[df$governor == gov & df$task_size == size & df$task_interval == interval,]
+      e <- max(entry$acc_energy_mWh) - min(entry$acc_energy_mWh)
+      if (least_e == -1 || e < least_e) {
+        least_e <- e
+        g <- gov
+      }
+    }
+    print(paste(size, interval, g))
+  }
+}
+
 
 # Correlation plot
 library(corrplot)
 png("correlations.png")
 par(mfrow=c(2,2))
 for (gov in governors) {
-  c <- df[df$governor == gov,][c("power_mW", "task_size", "task_interval", "cpu_utilization")]
+  c <- df[df$governor == gov,][c("power_mW", "task_size", "task_interval", "cpu_utilization_percentage")]
   colnames(c) <- c("Teho (mW)", "Työkoko (milj.)", "Töiden aikaväli (s)", "CPU-käyttötaso (%)")
   corrplot(title = gov,
            corr=cor(c),

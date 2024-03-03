@@ -30,18 +30,18 @@ if __name__ == "__main__":
 
     utilization = []
     times = []
+    
     (user, nice, system, idle) = read_proc_stat(cpu)
     last_busy = user + nice + system
     last_total = last_busy + idle
 
-    start = time()
     while keep_measuring:
         sleep(interval)
         (user, nice, system, idle) = read_proc_stat(cpu)
         busy = user + nice + system
         total = busy + idle
         utilization.append( (busy - last_busy) / (total - last_total) * 100 )
-        times.append(round(time() - start, 3))
+        times.append(time())
         last_busy = busy
         last_total = total
     
