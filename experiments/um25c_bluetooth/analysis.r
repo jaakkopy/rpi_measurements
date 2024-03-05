@@ -62,7 +62,7 @@ require(gridExtra)
 p1 <- ggplot(data = means, aes(y = mean, x = time)) +
   geom_bar(stat = "identity") +
   scale_x_discrete(limits = c("1s", "5s", "10s", "15s")) +
-  labs(x = "Kyselytiheys (s)", y = "Energiankulutus 30s jaksolta (mWh)")
+  labs(x = "Kyselytiheys (s)", y = "Energiankulutuksen keskiarvo 30s jaksolta (mWh)")
 
 p1
 

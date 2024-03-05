@@ -18,3 +18,14 @@ where:
 
 ## References
 - https://sigrok.org/wiki/RDTech_UM_series. For figuring out the UM25C device protocol. The site documents the response format if you wish to extend the program to read other measurements or modify it for other UMxx measurement devices.
+
+
+# Experiment scripts
+- Bash scripts for performing the experiments
+- The arguments required by each script are listed in the files
+- Most of the experiments assume that there is an SSH key generated such that the user does not have to keep typing their password
+
+
+# The R scripts
+- Not meant to be ran as a script from the command line, but rather used in the interactive mode to run commands recorded in the R file.
+- These files only record the R instructions that I used for my specific use case, so if you wish to use the R scripts, you will probably have to modify them.

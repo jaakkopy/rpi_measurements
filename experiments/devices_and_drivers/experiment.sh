@@ -3,8 +3,9 @@
 bluetooth_addr=$1
 user=$2
 host=$3
+outfileprefix=$4
 
-reboot_wait=70 # Time waited after reboot command to make sure the idle state is stable after booting up
+reboot_wait=120 # Time waited after reboot command to make sure the idle state is stable after booting up
 configfile=/boot/firmware/config.txt
 measure_time=1500
 measure_interval=1
@@ -23,18 +24,18 @@ echo Start state
 
 
 # Start state: Basic state without modifications. Ethernet cable should be plugged and WiFi should be enabled.
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/start.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-start.csv
 
 
-echo Disabling USB devices 
+#echo Disabling USB devices 
 
 
 # USB controller
-ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
-sleep 10
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/no_usb.csv
-ssh ${user}@${host} "sudo reboot"
-sleep ${reboot_wait}
+#ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
+#sleep 10
+#python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-no_usb.csv
+#ssh ${user}@${host} "sudo reboot"
+#sleep ${reboot_wait}
 
 
 echo Disabling Ethernet
@@ -43,8 +44,8 @@ echo Disabling Ethernet
 # Ethernet
 # Shut down the interface in background to avoid potential hangup
 ssh ${user}@${host} "sudo ifconfig eth0 down" &
-sleep 10
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/no_eth.csv
+sleep 30
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-no_eth.csv
 
 echo Disabling WiFi
 
@@ -53,7 +54,7 @@ echo Disabling WiFi
 # Write to config.txt and reboot
 ssh ${user}@${host} "echo 'dtoverlay=disable-wifi' | sudo tee -a $configfile > /dev/null; sudo reboot"
 sleep ${reboot_wait}
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/no_wifi.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-no_wifi.csv
 
 
 echo Disabling Bluetooth 
@@ -65,7 +66,7 @@ sleep ${reboot_wait}
 
 
 # Bluetooth
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/no_bt.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-no_bt.csv
 
 
 echo Disabling HDMI interface 
@@ -77,19 +78,19 @@ sleep ${reboot_wait}
 
 
 # HDMI 
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/no_hdmi.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-no_hdmi.csv
 
 
-echo Disabling CPUs
+echo "Disabling CPU cores except 1"
 
 
-# Remove the HDMI setting, add the CPU setting (by replacing cmdline.txt with another file, which has the option set), and reboot
+# Remove the HDMI setting, add the CPU setting (by replacing cmdline.txt with another file cmdline2.txt, which has the option set), and reboot
 ssh ${user}@${host} "sudo sed -i '$ d' $configfile; sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt; sudo reboot"
 sleep ${reboot_wait}
 
 
 # CPU
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/disabled_cpus.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-disabled_cpus.csv
 
 
 echo Disabling all
@@ -100,8 +101,8 @@ echo Disabling all
 ssh ${user}@${host} "printf 'dtoverlay=disable-wifi\ndtoverlay=disable-bt\nhdmi=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
 sleep ${reboot_wait}
 # USB
-ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
+#ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
 # Ethernet
 ssh ${user}@${host} "sudo ifconfig eth0 down" &
 sleep 10
-python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/all.csv
+python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-all.csv
