@@ -96,3 +96,15 @@ p4
 png("devices.png", width = 800, height = 800)
 grid.arrange(p1, p2, p3, p4, nrow=2)
 dev.off()
+
+# Comparison with Ethernet, WiFi and Bluetooth off
+ewb5 <- read.csv("./measurement_data/rpi5-wifi-bt-eth.csv")
+print(mean(ewb5$power_mW))
+print(sd(ewb5$power_mW))
+print( (mean(ewb5$power_mW) / mean(measurements5[["start"]]$power_mW) - 1) * 100 )
+
+
+ewb4 <- read.csv("./measurement_data/rpi4-wifi-bt-eth.csv")
+print(mean(ewb4$power_mW))
+print(sd(ewb4$power_mW))
+print( (mean(ewb4$power_mW) / mean(measurements4[["start"]]$power_mW) - 1) * 100 )
