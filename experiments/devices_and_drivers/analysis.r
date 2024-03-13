@@ -1,17 +1,16 @@
 phases4 <- c("start", "wifi", "bt",  "hdmi", "pcie", "uart", "random", "cpu", "usb", "eth")
-phases3 <- phases[-10]
-phases5 <- phases[-9]
+phases3 <- phases4[-10]
+phases5 <- phases4[-9]
 
 setwd("./measurement_data")
-measurements3 <- lapply(lapply(phases, function(x) paste("rpi3-", x, ".csv", sep = "")), read.csv)
-measurements4 <- lapply(lapply(phases, function(x) paste("rpi4-", x, ".csv", sep = "")), read.csv)
+measurements3 <- lapply(lapply(phases3, function(x) paste("rpi3-", x, ".csv", sep = "")), read.csv)
+measurements4 <- lapply(lapply(phases4, function(x) paste("rpi4-", x, ".csv", sep = "")), read.csv)
 measurements5 <- lapply(lapply(phases5, function(x) paste("rpi5-", x, ".csv", sep = "")), read.csv)
 setwd("..")
 
 names(measurements3) <- phases3
 names(measurements4) <- phases4
 names(measurements5) <- phases5
-
 
 measure_changes <- function(measurements, phases) {
   prev <- "start"
@@ -33,7 +32,7 @@ measure_changes(measurements4, phases4)
 measure_changes(measurements5, phases5)
 
 
-create_df <- function(measurements, phases) {
+create_df <- function(measurements, phases, device) {
   df <- measurements[["start"]]
   df$vaihe <- rep("start", times = length(nrow(measurements[["start"]])))
   df$i <- c(1:nrow(df))
@@ -43,72 +42,39 @@ create_df <- function(measurements, phases) {
     p$i <- c(1:nrow(p))
     df <- rbind(df, p)
   }
+  df$laite <- rep(device, times = length(nrow(df)))
   df
 }
 
 
-df3 <- create_df(measurements3, phases3)
-df4 <- create_df(measurements4, phases4)
-df5 <- create_df(measurements5, phases5)
-
+df3 <- create_df(measurements3, phases3, "RPi 3B+")
+df4 <- create_df(measurements4, phases4, "RPi 4B")
+df5 <- create_df(measurements5, phases5, "RPi 5")
+df <- rbind(df3, df4, df5)
 
 library(ggplot2)
 library(dplyr)
 require(gridExtra)
 
-# TODO: Stacked barchart to save space in the graph
-# https://r-graph-gallery.com/48-grouped-barplot-with-ggplot2
+p1 <- df %>%
+  group_by(laite, vaihe) %>%
+  summarize(m = mean(power_mW)) %>%
+  ggplot(aes(fill = laite, x = vaihe, y = m)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_x_discrete(limits = phases4) +
+  labs(x = "Vaihe", y = "Tehon keskiarvo (mW)")
 
-
-make_boxplot <- function(df, title, scale) {
-  ggplot(data = df, aes(x = vaihe, y = power_mW)) +
-    geom_boxplot() +
-    scale_x_discrete(limits = scale, guide = guide_axis(n.dodge=3)) +
-    labs(x = title, y = "Teho (mW)") +
-    ggtitle("RPi 3B+")
-}
-
-make_barplot <- function(df, title, scale) {
-  df %>% 
-    group_by(vaihe) %>%
-    summarize(m = mean(power_mW)) %>%
-    ggplot(aes(x = vaihe, y = m)) +
-    geom_bar(stat = "identity") +
-    scale_x_discrete(limits = scale, guide = guide_axis(n.dodge=3)) +
-    labs(x = title, y = "Tehon keskiarvo (mW)") +
-    ggtitle(title)
-}
-
-p1 <- make_boxplot(df3, "RPi 3B+", phases3)
 p1
 
-p2 <- make_barplot(df3, "RPi 3B+", phases3)
+p2 <- df %>%
+  group_by(laite, vaihe) %>%
+  ggplot(aes(color = laite, fill = laite, x = vaihe, y = power_mW)) +
+  geom_boxplot() +
+  scale_x_discrete(limits = phases4) +
+  labs(x = "Vaihe", y = "Teho (mW)")
+
 p2
 
-p3 <- make_boxplot(df4, "RPi 4B", phases4)
-p3
-
-p4 <- make_barplot(df4, "RPi 4B", phases4)
-p4
-
-p5 <- make_boxplot(df4, "RPi 5", phases5)
-p5
-
-p6 <- make_barplot(df4, "RPi 5", phases5)
-p6
-
 png("devices.png", width = 800, height = 800)
-grid.arrange(p1, p2, p3, p4, nrow=2)
+grid.arrange(p1, p2, nrow=2)
 dev.off()
-
-# Comparison with Ethernet, WiFi and Bluetooth off
-ewb5 <- read.csv("./measurement_data/rpi5-wifi-bt-eth.csv")
-print(mean(ewb5$power_mW))
-print(sd(ewb5$power_mW))
-print( (mean(ewb5$power_mW) / mean(measurements5[["start"]]$power_mW) - 1) * 100 )
-
-
-ewb4 <- read.csv("./measurement_data/rpi4-wifi-bt-eth.csv")
-print(mean(ewb4$power_mW))
-print(sd(ewb4$power_mW))
-print( (mean(ewb4$power_mW) / mean(measurements4[["start"]]$power_mW) - 1) * 100 )

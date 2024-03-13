@@ -51,6 +51,7 @@ sleep ${reboot_wait}
 measure random
 
 echo "1 CPU core"
+# cmdline2.txt is a copy of the original cmdline.txt with the line maxcpus=1 set.
 ssh ${user}@${host} "sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt; sudo reboot"
 sleep ${reboot_wait}
 measure cpu
