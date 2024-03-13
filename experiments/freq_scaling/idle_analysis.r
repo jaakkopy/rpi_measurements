@@ -7,72 +7,63 @@ cols <- c("time_s",
           "i",
           "freq_GHz")
 
-df4 <- data.frame(matrix(ncol = length(cols), nrow = 0)) # RPi 4B
-df5 <- data.frame(matrix(ncol = length(cols), nrow = 0)) # RPi 5
-colnames(df4) <- cols
-colnames(df5) <- cols
-freqs4 <- c(6:18) # RPi 4B
-freqs5 <- c(15:24) # RPi 5
-# RPi 4B measurements
-for (f in freqs4) {
-  filename <- paste("rpi4-idle-freq-", f, "00000.csv", sep="")
-  d <- read.csv(filename)
-  d$i <- c(1:nrow(d))
-  d$freq_GHz <- rep(f/10, times = nrow(d))
-  df4 <- rbind(df4, d)
+
+create_df <- function(filename_prefix, freqs) {
+  df <- data.frame(matrix(ncol = length(cols), nrow = 0))
+  colnames(df) <- cols
+  for (f in freqs) {
+    filename <- paste(filename_prefix, f, "00000.csv", sep="")
+    d <- read.csv(filename)
+    d$i <- c(1:nrow(d))
+    d$freq_GHz <- rep(f/10, times = nrow(d))
+    df <- rbind(df, d)
+  }
+  df
 }
-# RPi 5 measurements
-for (f in freqs5) {
-  filename <- paste("rpi5-idle-freq-", f, "00000.csv", sep="")
-  d <- read.csv(filename)
-  d$i <- c(1:nrow(d))
-  d$freq_GHz <- rep(f/10, times = nrow(d))
-  df5 <- rbind(df5, d)
-}
+
+freqs4 <- c(6:18)
+df4 <- create_df("rpi4-idle-freq-", freqs4)
+
+freqs5 <- c(15:24)
+df5 <- create_df("rpi5-idle-freq-", freqs5)
+
 setwd("..")
 
 library(ggplot2)
 library(dplyr)
 require(gridExtra)
 
-p1 <- df5 %>%
-  group_by(freq_GHz) %>%
-  summarize(m = mean(power_mW)) %>%
-  ggplot(aes(x = freq_GHz, y = m)) +
-  geom_line() +
-  geom_point() +
-  labs(x = "Kellotaajuus (GHz)", y = "Tehon keskiarvo (mW)") +
-  ggtitle("RPi 5")
 
+create_lineplot <- function(df, title) {
+  df %>%
+    group_by(freq_GHz) %>%
+    summarize(m = mean(power_mW)) %>%
+    ggplot(aes(x = freq_GHz, y = m)) +
+    geom_line() +
+    geom_point() +
+    labs(x = "Kellotaajuus (GHz)", y = "Tehon keskiarvo (mW)") +
+    ggtitle(title)
+}
+
+create_boxplot <- function(df, title) {
+  df %>% 
+    group_by(freq_GHz) %>% 
+    ggplot(aes(x = freq_GHz, y = power_mW, group = freq_GHz)) +
+    geom_boxplot() +
+    labs(x = "Kellotaajuus (GHz)", y = "Teho (mW)", fill = "Taajuus (GHz)") +
+    ggtitle(title)
+}
+
+p1 <- create_lineplot(df4, "RPi 4B")
 p1
 
-p2 <- df4 %>%
-  group_by(freq_GHz) %>%
-  summarize(m = mean(power_mW)) %>%
-  ggplot(aes(x = freq_GHz, y = m)) +
-  geom_line() +
-  geom_point() +
-  labs(x = "Kellotaajuus (GHz)", y = "Tehon keskiarvo (mW)") +
-  ggtitle("RPi 4B")
-
+p2 <- create_boxplot(df4, "RPi 4B")
 p2
 
-p3 <- df5 %>% 
-  group_by(freq_GHz) %>% 
-  ggplot(aes(x = freq_GHz, y = power_mW, group = freq_GHz)) +
-  geom_boxplot() +
-  labs(x = "Kellotaajuus (GHz)", y = "Teho (mW)", fill = "Taajuus (GHz)") +
-  ggtitle("RPi 5")
-
+p3 <- create_lineplot(df5, "RPi 5")
 p3
 
-p4 <- df4 %>% 
-  group_by(freq_GHz) %>% 
-  ggplot(aes(x = freq_GHz, y = power_mW, group = freq_GHz)) +
-  geom_boxplot() +
-  labs(x = "Kellotaajuus (GHz)", y = "Teho (mW)", fill = "Taajuus (GHz)") +
-  ggtitle("RPi 4B")
-
+p4 <- create_boxplot(df5, "RPi 5")
 p4
 
 png("idle_freq_graphs.png")

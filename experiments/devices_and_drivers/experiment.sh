@@ -3,7 +3,7 @@
 bluetooth_addr=$1
 user=$2
 host=$3
-outfileprefix=$4
+device=$4 # should be rpi3, rpi4 or rpi5 (used to check a condition)
 
 reboot_wait=120 # Time waited after reboot command to make sure the idle state is stable after booting up
 configfile=/boot/firmware/config.txt
@@ -13,7 +13,7 @@ measure_interval=1
 
 
 measure () {
-    python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$outfileprefix-$1.csv
+    python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$device-$1.csv
 }
 
 echo "Start"
@@ -29,26 +29,6 @@ echo "Bluetooth"
 ssh ${user}@${host} "echo 'dtoverlay=disable-bt' | sudo tee -a $configfile > /dev/null; sudo systemctl disable bluetooth; sudo reboot"
 sleep ${reboot_wait}
 measure bt
-
-echo "cron"
-ssh ${user}@${host} "sudo systemctl stop cron; sudo systemctl disable cron"
-sleep ${after_command_wait}
-measure cron
-
-echo "ModemManager"
-ssh ${user}@${host} "sudo systemctl stop ModemManager; sudo systemctl disable ModemManager"
-sleep ${after_command_wait}
-measure ModemManager
-
-echo "systemd-timesyncd"
-ssh ${user}@${host} "sudo systemctl stop systemd-timesyncd; sudo systemctl disable systemd-timesyncd"
-sleep ${after_command_wait}
-measure systemd-timesyncd
-
-echo "triggerhappy"
-ssh ${user}@${host} "sudo systemctl stop triggerhappy; sudo systemctl disable triggerhappy"
-sleep ${after_command_wait}
-measure triggerhappy
 
 echo "HDMI"
 ssh ${user}@${host} "echo 'hdmi=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
@@ -75,14 +55,20 @@ ssh ${user}@${host} "sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-o
 sleep ${reboot_wait}
 measure cpu
 
-echo "USB" 
-ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null"
-sleep ${after_command_wait}
-measure usb
+# NOTE: Only works on RPi 3 and 4
+if [ "$device" = "rpi3" ] || [ "$device" = "rpi4" ]; then
+    echo "USB" 
+    ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null" &
+    sleep ${after_command_wait}
+    measure usb
+fi
 
-echo "Ethernet"
-ssh ${user}@${host} "sudo ifconfig eth0 down" &
-sleep ${after_command_wait}
-measure eth
+# The pi 3 has a shared bus with USB and Ethernet, so the above step is enough for the pi 3
+if [ "$device" != "rpi3" ]; then
+    echo "Ethernet"
+    ssh ${user}@${host} "sudo ifconfig eth0 down" &
+    sleep ${after_command_wait}
+    measure eth
+fi
 
 echo "Done"
