@@ -4,3 +4,4 @@ addr
 *_data
 *.png
 tmp.sh
+backup_measurements.tar.gz

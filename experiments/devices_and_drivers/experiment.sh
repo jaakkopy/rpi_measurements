@@ -31,24 +31,19 @@ sleep ${reboot_wait}
 measure bt
 
 echo "HDMI"
-ssh ${user}@${host} "echo 'hdmi=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
+ssh ${user}@${host} "echo 'dtparam=hdmi=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
 sleep ${reboot_wait}
 measure hdmi
 
 echo "PCIE"
-ssh ${user}@${host} "echo 'pcie=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
+ssh ${user}@${host} "echo 'dtparam=pcie=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
 sleep ${reboot_wait}
 measure pcie
 
 echo "UART"
-ssh ${user}@${host} "printf 'uart0=off\nuart1=off\n' | sudo tee -a $configfile > /dev/null; sudo systemctl disable hciuart; sudo reboot"
+ssh ${user}@${host} "sudo systemctl disable hciuart; sudo reboot"
 sleep ${reboot_wait}
 measure uart
-
-echo "random"
-ssh ${user}@${host} "echo 'random=off' | sudo tee -a $configfile > /dev/null; sudo reboot"
-sleep ${reboot_wait}
-measure random
 
 echo "1 CPU core"
 # cmdline2.txt is a copy of the original cmdline.txt with the line maxcpus=1 set.
