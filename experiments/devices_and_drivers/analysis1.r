@@ -25,6 +25,15 @@ measure_changes <- function(measurements, phases) {
   }
 }
 
+testi <- read.csv("../../testi_pcie.csv")
+prev <- "hdmi"
+x <- "pcie"
+print(mean(testi$power_mW))
+print(sd(testi$power_mW))
+print( (mean(testi$power_mW) / mean(measurements4[[prev]]$power_mW) - 1) * 100 )
+print(t.test(testi$power_mW, measurements4[[prev]]$power_mW), conf.level = 0.95)
+
+
 # RPi 3B+
 measure_changes(measurements3, phases3)
 # RPi 4B
