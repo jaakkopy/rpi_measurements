@@ -42,7 +42,7 @@ def reboot():
 
 def get_model():
     with open('/proc/device-tree/model') as f:
-        return f.read()
+        return f.read()[0:-1]
 
 def disable_usb_and_ethernet():
     # This USB option only works on RPi 3B+. On the 3B+ model, this also disables Ethernet
