@@ -6,7 +6,7 @@
 # (the experiment program on the RPi creates timestamps for each phase)
 measure_time_wait=1000
 cool_off_wait=10
-reboot_time=30 # might be higher than needed; can be modified based on how safe you want to play
+reboot_time=40 # might be higher than needed; can be modified based on how safe you want to play
 
 user=$1
 host=$2

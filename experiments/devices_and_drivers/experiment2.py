@@ -1,6 +1,5 @@
 from time import sleep, time
 from os import path, system
-import subprocess
 
 '''
 This version of the experiment first disables all the considered features

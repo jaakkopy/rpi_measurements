@@ -24,7 +24,7 @@ def read_pnd(interface: str):
 def main(loop_time: float, check_interval: float, interface: str, out_file: str, should_print: str) -> None:
     RR = [] # bandwidth for bytes received
     RT = [] # bandwidth for bytes transmitted
-    T  = [] # measurement time since start (seconds)
+    T  = [] # measurement time (seconds)
     # Read current bytes received/transmitted
     (br, bt) = read_pnd(interface)
     last_received = br
