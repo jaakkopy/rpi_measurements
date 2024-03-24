@@ -13,8 +13,10 @@ python measurement.py a l t > out.csv
 ```
 where:
 - a = The bluetooth address of your UM25C device. The address can be found with bluetoothctl, for example.
-- l = total measurement time limit in seconds. For example 10.23 for 10.23 seconds.
+- l = Measurement time target. 
 - t = Wait time between polling in seconds
+
+Note that the program may run for a longer time than `l` as there are certain time delays involved. Currently the program takes `ceil(l/t)` measurements and waits for `t` seconds between them no matter how much actual time has passed. This suits the author's needs, but the program is easily modifiable to enforce a strict time limit. 
 
 ## References
 - https://sigrok.org/wiki/RDTech_UM_series. For figuring out the UM25C device protocol. The site documents the response format if you wish to extend the program to read other measurements or modify it for other UMxx measurement devices.
