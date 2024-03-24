@@ -62,22 +62,10 @@ require(gridExtra)
 p1 <- ggplot(data = means, aes(y = mean, x = time)) +
   geom_bar(stat = "identity") +
   scale_x_discrete(limits = c("1s", "5s", "10s", "15s")) +
-  labs(x = "Kyselytiheys (s)", y = "Energiankulutuksen keskiarvo 30s jaksolta (mWh)")
+  labs(x = "Wait time between polls (s)", y = "Mean energy consumption from 30s period (mWh)")
 
 p1
 
-p2 <- ggplot(data = stack(data.frame("1s" = p1_energy,
-                               "5s" = p2_energy,
-                               "10s" = p3_energy,
-                               "15s" = p4_energy,
-                               check.names = FALSE)),
-             aes(x = ind, y = values)
-            ) +
-  geom_boxplot() +
-  labs(x = "Kyselytiheys (s)", y = "Energiankulutus 30s jaksolta (mWh)")
-
-p2
-
-png("average_energy_and_poll_frequency.png")
-grid.arrange(p1, p2, ncol=2)
+png("average_energy_and_poll_frequency.png", width = 400, height = 400)
+p1
 dev.off()

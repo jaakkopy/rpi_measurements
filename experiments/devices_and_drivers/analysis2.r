@@ -6,7 +6,7 @@ measurements5 <- read.csv("./measurement_data/rpi5-experiment2.csv")
 phase_times5 <- read.csv("./measurement_data/rpi5-experiment2-phase-times.csv")
 
 phases <- unique(phase_times3$phase)
-names(phases) <- c("kaikki", "ei mitään", "CPU", "UART", "PCIE", "HDMI", "BT", "WiFi", "ETH", "USB")
+names(phases) <- c("All enabled", "Nothing enabled", "CPU", "UART", "PCIE", "HDMI", "BT", "WiFi", "ETH", "USB")
 
 create_df <- function(measurements, phase_times) {
   measurements$phase <- rep(NA, times = nrow(measurements))
@@ -25,11 +25,11 @@ library(dplyr)
 require(gridExtra)
 
 df3 <- create_df(measurements3, phase_times3)
-df3$laite <- rep("RPi 3B+", times = length(nrow(df3)))
+df3$device <- rep("RPi 3B+", times = length(nrow(df3)))
 df4 <- create_df(measurements4, phase_times4)
-df4$laite <- rep("RPi 4B", times = length(nrow(df4)))
+df4$device <- rep("RPi 4B", times = length(nrow(df4)))
 df5 <- create_df(measurements5, phase_times5)
-df5$laite <- rep("RPi 5", times = length(nrow(df5)))
+df5$device <- rep("RPi 5", times = length(nrow(df5)))
 
 df <- rbind(df3, df4, df5)
 
@@ -48,21 +48,21 @@ compare_to_all_disabled(df4)
 compare_to_all_disabled(df5)
 
 p1 <- df %>%
-  group_by(laite, phase) %>%
+  group_by(device, phase) %>%
   summarize(m = mean(power_mW)) %>%
-  ggplot(aes(fill = laite, x = phase, y = m)) +
+  ggplot(aes(fill = device, x = phase, y = m)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_x_discrete(limits = phases, labels = names(phases)) +
-  labs(x = "Vaihe", y = "Tehon keskiarvo (mW)")
+  labs(x = "Phase", y = "Mean power consumption (mW)")
 
 p1
 
 p2 <- df %>%
-  group_by(laite, phase) %>%
-  ggplot(aes(color = laite, fill = laite, x = phase, y = power_mW)) +
+  group_by(device, phase) %>%
+  ggplot(aes(color = device, fill = device, x = phase, y = power_mW)) +
   geom_boxplot() +
   scale_x_discrete(limits = phases, labels = names(phases)) +
-  labs(x = "Vaihe", y = "Teho (mW)")
+  labs(x = "Phase", y = "Power consumption (mW)")
 
 p2
 

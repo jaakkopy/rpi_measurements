@@ -1,6 +1,7 @@
 import bluetooth # from PyBluez package
 import struct
 from time import sleep, time
+from math import ceil
 import signal
 
 RESPONSE_SIZE = 130
@@ -64,24 +65,14 @@ def main(addr: str, loop_time: float, poll_wait: float):
     if tries == 3:
         raise RuntimeError("Failed to connect to the measurement device")
     # Remove the necessary wait time between a data dump request and the reading of the result from the poll time
-    poll_wait = max(0, poll_wait - DATA_DUMP_WAIT)
+    poll_wait_modified = max(0, poll_wait - DATA_DUMP_WAIT)
     print("time_s,voltage_mV,current_mA,power_mW,acc_energy_mWh")
-    # First measurement at time 0
-    r = get_measurements(sock)
-    t = time()
-    print_values(t, *unpack_vcpe(r))
-    # Start the timer
-    start = t
-    dt = 0 
-    while dt < loop_time and keep_looping:
-        if dt + poll_wait < loop_time:
-            sleep(poll_wait)
-        else:
-            sleep(max(0, loop_time - t - DATA_DUMP_WAIT))
+    i = ceil(loop_time/poll_wait)
+    while i > 0 and keep_looping:
         r = get_measurements(sock)
-        t = time()
-        dt = t - start
-        print_values(t, *unpack_vcpe(r))
+        print_values(time(), *unpack_vcpe(r))
+        sleep(poll_wait_modified)
+        i -= 1
     sock.close()
 
 
