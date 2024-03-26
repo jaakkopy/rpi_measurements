@@ -51,15 +51,14 @@ ssh ${user}@${host} "sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-o
 sleep ${reboot_wait}
 measure cpu
 
-# NOTE: Only works on RPi 3 and 4
-if [ "$device" = "rpi3" ] || [ "$device" = "rpi4" ]; then
+if [ "$device" = "rpi3" ]; then
     echo "USB" 
     ssh ${user}@${host} "echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind > /dev/null" &
     sleep ${after_command_wait}
     measure usb
 fi
 
-# The pi 3 has a shared bus with USB and Ethernet, so the above step is enough for the pi 3
+# The pi 3 has a shared bus with USB and Ethernet, so the above step is enough for the pi 3 to disable Ethernet
 if [ "$device" != "rpi3" ]; then
     echo "Ethernet"
     ssh ${user}@${host} "sudo ifconfig eth0 down" &

@@ -15,6 +15,7 @@ for x in ${allowed_frequencies}
 do
     # Set the frequency
     ssh ${user}@${host} "echo $x | sudo tee /sys/devices/system/cpu/cpufreq/policy0/scaling_setspeed > /dev/null;"
+    sleep 15
     # Collect samples
     python ../../measurement.py ${bluetooth_addr} 1500 1 > ./measurement_data/$outfileprefix-idle-freq-$x.csv
     sleep 15

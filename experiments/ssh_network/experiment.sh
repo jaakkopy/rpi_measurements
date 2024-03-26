@@ -8,25 +8,21 @@ fileprefix=$5
 
 measuretime=1500
 
-for poll_wait in 1 5 10 15 20
+for poll_wait in 1 5 10 15
 do
     # Experiment phase 1: Print the output and therefore cause additional network traffic over the SSH connection
     python ../../measurement.py ${bluetooth_addr} ${measuretime} 1 > ./measurement_data/$fileprefix-$poll_wait-with_print.csv &
     id=$!
     # Start the program at the raspberry. Assumed to be stored in /home/<username>/ssh_experiment/experiment_ssh_and_network.py
     ssh ${user}@${host} "cd ./ssh_experiment && python experiment_ssh_and_network.py $measuretime $poll_wait $interface ./data/$fileprefix-$poll_wait-with_print.csv y"
-    if ps -p $id > /dev/null; then
-        kill -INT $id
-    fi
+    kill -INT $id
     sleep 15
 
     # Experiment phase 2: Don't print the output. This will not cause additional network traffic over the SSH connection
     python ../../measurement.py ${bluetooth_addr} ${measuretime} 1 > ./measurement_data/$fileprefix-$poll_wait-without_print.csv &
     id=$!
     ssh ${user}@${host} "cd ./ssh_experiment && python experiment_ssh_and_network.py $measuretime $poll_wait $interface ./data/$fileprefix-$poll_wait-without_print.csv n"
-    if ps -p $id > /dev/null; then
-        kill -INT $id
-    fi
+    kill -INT $id
     sleep 15
 done
 

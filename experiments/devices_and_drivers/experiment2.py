@@ -33,21 +33,18 @@ RPI3_MODEL = "Raspberry Pi 3 Model B Plus Rev 1.3"
 ETH_INTERFACE = "eth0"
 COOL_OFF_WAIT = 10
 
-def run_shell_command(cmd):
-    system(cmd)
-
 def reboot():
-    run_shell_command("sudo reboot")
+    system("sudo reboot")
 
 def get_model():
     with open('/proc/device-tree/model') as f:
         return f.read()[0:-1]
 
 def disable_usb_and_ethernet():
+    system(f"sudo ifconfig {ETH_INTERFACE} down")
     # This USB option only works on RPi 3B+. On the 3B+ model, this also disables Ethernet
     if get_model() == RPI3_MODEL:
-        run_shell_command("echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind")
-    run_shell_command(f"ifconfig {ETH_INTERFACE} down")
+        system("echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind")
 
 def add_time_phase_entry(timestamp, entry):
     with open(TIMESTAMP_FILE, "a") as f:
@@ -58,7 +55,7 @@ def write_phase_name(phase):
         return f.write(phase)
 
 def pop_config():
-    run_shell_command(f'sed -i "$ d" {CONFIG_FILE}')
+    system(f'sed -i "$ d" {CONFIG_FILE}')
 
 def push_config(config):
     with open(CONFIG_FILE, "a") as f:
@@ -84,10 +81,10 @@ def init():
         f.write("dtparam=hdmi=off\n")
         f.write("dtparam=pcie=off\n")
     # service options: bluetooth.service and hciuart.service
-    run_shell_command("sudo systemctl disable bluetooth && sudo systemctl disable hciuart")
+    system("sudo systemctl disable bluetooth && sudo systemctl disable hciuart")
     # Disable CPU cores
     # cmdline2.txt is an exact copy of the cmdline.txt, but with the added parameter maxcpus=1
-    run_shell_command("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt")
+    system("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt")
     # mark the next phase and reboot
     write_phase_name("all")
     reboot()
@@ -99,7 +96,7 @@ def all_disabled():
     sleep(COOL_OFF_WAIT)
     wait_measurement_time("all")
     # Next phase: restored CPU cores.
-    run_shell_command("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline2.txt; sudo mv /boot/firmware/cmdline-original.txt /boot/firmware/cmdline.txt")
+    system("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline2.txt; sudo mv /boot/firmware/cmdline-original.txt /boot/firmware/cmdline.txt")
     write_phase_name("cpu")
     reboot()
 
@@ -110,9 +107,9 @@ def cpu_cores():
     sleep(COOL_OFF_WAIT)
     wait_measurement_time("cpu")
     # Disable again for the next phase
-    run_shell_command("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt")
+    system("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline-original.txt; sudo mv /boot/firmware/cmdline2.txt /boot/firmware/cmdline.txt")
     # Next phase: Restore hciuart
-    run_shell_command("sudo systemctl enable hciuart")
+    system("sudo systemctl enable hciuart")
     write_phase_name("uart")
     reboot()
 
@@ -123,7 +120,7 @@ def uart():
     sleep(COOL_OFF_WAIT)
     wait_measurement_time("uart")
     # Disable uart again
-    run_shell_command("sudo systemctl disable hciuart")
+    system("sudo systemctl disable hciuart")
     # Next phase: PCIE enabled (delete the pcie entry)
     pop_config()
     write_phase_name("pcie")
@@ -152,7 +149,7 @@ def hdmi():
     pop_config() # pop bluetooth
     push_config("dtparam=pcie=off") # push pcie
     push_config("dtparam=hdmi=off") # push hdmi 
-    run_shell_command("sudo systemctl enable bluetooth")
+    system("sudo systemctl enable bluetooth")
     write_phase_name("bt")
     reboot()
 
@@ -169,7 +166,7 @@ def bt():
     push_config("dtparam=pcie=off") # push pcie
     push_config("dtparam=hdmi=off") # push hdmi 
     push_config("dtoverlay=disable-bt") # push bluetooth 
-    run_shell_command("sudo systemctl disable bluetooth")
+    system("sudo systemctl disable bluetooth")
     write_phase_name("wifi")
     reboot()
 
@@ -190,7 +187,7 @@ def eth():
     # This time disable only USB (leave the Ethernet interface enabled unlike previously)
     # (only for RPi 3B+)
     if get_model() == RPI3_MODEL:
-        run_shell_command("echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind")
+        system("echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind")
         sleep(COOL_OFF_WAIT)
     wait_measurement_time("eth")
     # if the device is RPi 3B+, the last phase will disable just the USB.
@@ -205,7 +202,7 @@ def eth():
 # config stack: pcie, hdmi, bt, wifi
 def usb():
     # This time disable only the Ethernet interface and leave the USB enabled
-    run_shell_command(f"ifconfig {ETH_INTERFACE} down")
+    system(f"sudo ifconfig {ETH_INTERFACE} down")
     sleep(COOL_OFF_WAIT)
     wait_measurement_time("usb")
     write_phase_name("done")
@@ -232,9 +229,9 @@ def main():
         # Remove all of the configurations
         for _ in range(4):
             pop_config()
-        run_shell_command("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline2.txt; sudo mv /boot/firmware/cmdline-original.txt /boot/firmware/cmdline.txt")
-        run_shell_command("sudo systemctl enable bluetooth")
-        run_shell_command("sudo systemctl enable hciuart")
+        system("sudo mv /boot/firmware/cmdline.txt /boot/firmware/cmdline2.txt; sudo mv /boot/firmware/cmdline-original.txt /boot/firmware/cmdline.txt")
+        system("sudo systemctl enable bluetooth")
+        system("sudo systemctl enable hciuart")
         # Marker to prevent this script from doing anything when the cron job activates after reboot
         # To active the experiment again, delete the phase marker file or the cron job
         write_phase_name("terminated")

@@ -69,16 +69,25 @@ create_power_lineplot <- function(df, title) {
     group_by(freq_GHz, wifi_bt) %>%
     summarize(m = mean(power_mW)) %>%
     ggplot(aes(color = wifi_bt, x = freq_GHz, y = m)) +
-    geom_line() +
-    geom_point() +
-    scale_x_continuous("Kellotaajuus (GHz)", labels = as.character(freqs), breaks = freqs) +
-    guides(color = guide_legend(title="WiFi ja Bluetooth käytössä")) +
-    labs(x = "Kellotaajuus (GHz)", y = "Tehon keskiarvo (mW)") +
+    geom_line(show.legend = FALSE) +
+    geom_point(show.legend = FALSE) +
+    scale_x_continuous("CPU clock frequency (GHz)", labels = as.character(freqs), breaks = freqs) +
+    guides(color = guide_legend(title="WiFi and Bluetooth enabled")) +
+    labs(y = "Mean power consumption (mW)") +
     ggtitle(title)
+}
+
+create_power_boxplot <- function(df, title) {
+  freqs <- seq(min(df$freq_GHz), max(df$freq_GHz), 0.1)
+  ggplot(df, aes(x = factor(freq_GHz), y = power_mW, fill = factor(wifi_bt))) +
+    geom_boxplot(show.legend = FALSE) +
+    guides(fill = guide_legend(title="WiFi and Bluetooth enabled")) +
+    labs(x = "CPU clock frequency (GHz)", y = "Power consumption (mW)", title = title)
 }
 
 png("idle_freq_graphs.png", width = 800, height = 800)
 grid.arrange(create_power_lineplot(df3, "RPi 3B+"),
              create_power_lineplot(df4, "RPi 4B"),
-             create_power_lineplot(df5, "RPi 5"))
+             create_power_lineplot(df5, "RPi 5"),
+             nrow = 3)
 dev.off()

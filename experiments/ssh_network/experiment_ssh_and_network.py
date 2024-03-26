@@ -1,9 +1,13 @@
 from time import time, sleep
 from sys import stdout
+from math import ceil
+import threading
 
 '''
 This program will be running on the Raspberry Pi to measure the bandwidth.
 '''
+
+BANDWIDTH_MEASUREMENT_WAIT_TIME = 1
 
 # Assumes the interface exists.
 def get_interface_readings(lines: list[str], interface: str) -> tuple[int, int]:
@@ -21,41 +25,47 @@ def read_pnd(interface: str):
         return get_interface_readings(l.splitlines(), interface)
 
 
-def main(loop_time: float, check_interval: float, interface: str, out_file: str, should_print: str) -> None:
-    RR = [] # bandwidth for bytes received
-    RT = [] # bandwidth for bytes transmitted
-    T  = [] # measurement time (seconds)
+def bandwidth_measurement_thread(loop_time, interface, out_file):
+    BR = [] # bandwidth for bytes received
+    BT = [] # bandwidth for bytes transmitted
+    T  = [] # measurement time (Unix time)
     # Read current bytes received/transmitted
     (br, bt) = read_pnd(interface)
-    last_received = br
+    last_receive = br
     last_transmit = bt
     i = 0
-    dt = 0 
-    start = time()
-    t = start
-    while dt < loop_time + check_interval:
+    while i < loop_time:
+        sleep(BANDWIDTH_MEASUREMENT_WAIT_TIME)
+        t = time()
         (br, bt) = read_pnd(interface)
-        RR.append( (br - last_received) / check_interval )
-        RT.append( (bt - last_transmit) / check_interval )
-        last_received = br
+        BR.append( (br - last_receive) / check_interval )
+        BT.append( (bt - last_transmit) / check_interval )
+        last_receive = br
         last_transmit = bt
         T.append(t)
         i += 1
-        if should_print == 'y':
-            print(dt)
-            stdout.flush() # To prevent buffering.
-        sleep(check_interval)
-        t = time()
-        dt = t - start
     with open(out_file, "w") as f:
         f.write("time_s,receive_bandwidth_bytes_per_s,transmit_bandwidth_bytes_per_s\n")
-        for j in range(1, i):
-            f.write(f"{T[j]},{RR[j]},{RT[j]}\n")
+        for j in range(i):
+            f.write(f"{T[j]},{BR[j]},{BT[j]}\n")
 
+
+def main(loop_time: float, check_interval: float, interface: str, out_file: str, should_print: str) -> None:
+    i = 0
+    iterations = ceil(loop_time / check_interval)
+    t = threading.Thread(target=bandwidth_measurement_thread, args=(loop_time, interface, out_file))
+    t.start()
+    for _ in range(iterations):
+        i += 1
+        if should_print == 'y':
+            print(i)
+            stdout.flush() # To prevent buffering.
+        sleep(check_interval)
+    t.join()
 
 if __name__ == "__main__":
     from sys import argv
-    loop_time = float(argv[1])  # seconds
+    loop_time = float(argv[1]) # seconds
     check_interval = float(argv[2]) # seconds
     interface = argv[3] # the network interface to check (e.g wlan0)
     out_file = argv[4] # where to write the output

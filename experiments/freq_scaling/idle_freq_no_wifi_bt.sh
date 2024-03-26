@@ -15,8 +15,8 @@ allowed_frequencies=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_availa
 echo ${allowed_frequencies} | wc -w
 
 # Disable WiFi and Bluetooth to prevent high variance in measurement values
-sudo ifconfig wlan0 down 
-sudo systemctl stop bluetooth
+sudo rfkill block wifi
+sudo rfkill block bluetooth
 
 chtf="./measurement_data/$outfileprefix-changetimes.csv"
 
@@ -37,5 +37,5 @@ echo "$(date +%s),NA" >> ${chtf}
 # Reset the governor to ondemand (default) after the experiment is done
 echo ondemand | sudo tee /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
 # Bring wifi and bt back up
-sudo ifconfig wlan0 up 
-sudo systemctl start bluetooth
+sudo rfkill unblock wifi
+sudo rfkill unblock bluetooth
