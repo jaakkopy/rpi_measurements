@@ -68,7 +68,10 @@ def main(addr: str, loop_time: float, poll_wait: float):
     poll_wait_modified = max(0, poll_wait - DATA_DUMP_WAIT)
     print("time_s,voltage_mV,current_mA,power_mW,acc_energy_mWh")
     i = ceil(loop_time/poll_wait)
-    while i > 0 and keep_looping:
+    start = time()
+    dt = 0
+    while dt < loop_time and keep_looping:
+        dt = time() - start
         r = get_measurements(sock)
         print_values(time(), *unpack_vcpe(r))
         sleep(poll_wait_modified)

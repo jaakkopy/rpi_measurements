@@ -53,6 +53,8 @@ p1 <- df %>%
   ggplot(aes(fill = device, x = phase, y = m)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_x_discrete(limits = phases, labels = names(phases)) +
+  geom_text(aes(label = round(m, 2)), colour = "black", angle = 90, hjust = 1.5, position = position_dodge(width = .9)) +
+  guides(fill = guide_legend(title = "Device")) +
   labs(x = "Phase", y = "Mean power consumption (mW)")
 
 p1
@@ -62,6 +64,7 @@ p2 <- df %>%
   ggplot(aes(color = device, fill = device, x = phase, y = power_mW)) +
   geom_boxplot() +
   scale_x_discrete(limits = phases, labels = names(phases)) +
+  guides(fill = guide_legend(title = "Device"), color = guide_legend(title = "Device")) +
   labs(x = "Phase", y = "Power consumption (mW)")
 
 p2

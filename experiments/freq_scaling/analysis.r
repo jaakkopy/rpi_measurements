@@ -44,6 +44,7 @@ df3 <- combine_cases(
   create_df_no_wifi_bt(read.csv("./measurement_data/rpi3-freq.csv"),
                        read.csv("./measurement_data/rpi3-changetimes.csv"))
 )
+df3 <- df3[df3$power_mW > 0,]
 
 freqs4 <- c(6:18)
 df4 <- combine_cases(
@@ -51,6 +52,7 @@ df4 <- combine_cases(
   create_df_no_wifi_bt(read.csv("./measurement_data/rpi4-freq.csv"),
                        read.csv("./measurement_data/rpi4-changetimes.csv"))
 )
+df4 <- df4[df3$power_mW > 0,]
 
 freqs5 <- c(15:24)
 df5 <- combine_cases(
@@ -58,10 +60,19 @@ df5 <- combine_cases(
   create_df_no_wifi_bt(read.csv("./measurement_data/rpi5-freq.csv"),
                        read.csv("./measurement_data/rpi5-changetimes.csv"))
 )
+df5 <- df5[df3$power_mW > 0,]
 
 library(ggplot2)
+library(ggrepel)
 library(dplyr)
 require(gridExtra)
+
+kruskal.test(power_mW ~ freq_GHz, data=df3[df3$wifi_bt == FALSE & df3$freq_GHz > 0.6,])
+kruskal.test(power_mW ~ freq_GHz, data=df4[df4$wifi_bt == FALSE & df4$freq_GHz > 0.6,])
+kruskal.test(power_mW ~ freq_GHz, data=df5[df5$wifi_bt == FALSE & df5$freq_GHz > 0.6,])
+
+# pairwise.wilcox.test?
+
 
 create_power_lineplot <- function(df, title) {
   freqs <- seq(min(df$freq_GHz), max(df$freq_GHz), 0.1)
@@ -78,10 +89,11 @@ create_power_lineplot <- function(df, title) {
 }
 
 create_power_boxplot <- function(df, title) {
-  freqs <- seq(min(df$freq_GHz), max(df$freq_GHz), 0.1)
-  ggplot(df, aes(x = factor(freq_GHz), y = power_mW, fill = factor(wifi_bt))) +
-    geom_boxplot(show.legend = FALSE) +
-    guides(fill = guide_legend(title="WiFi and Bluetooth enabled")) +
+  ggplot(df, aes(x = factor(freq_GHz), y = power_mW, color = factor(wifi_bt))) +
+    geom_boxplot() +
+    guides(fill = guide_legend(title="WiFi and Bluetooth enabled"), color = guide_legend(title="WiFi and Bluetooth enabled")) +
+    stat_summary(fun.y=mean, geom="point", shape=20, size=3, color="black",
+             position = position_dodge2(width = 0.75, preserve = "single")) +
     labs(x = "CPU clock frequency (GHz)", y = "Power consumption (mW)", title = title)
 }
 
@@ -89,5 +101,12 @@ png("idle_freq_graphs.png", width = 800, height = 800)
 grid.arrange(create_power_lineplot(df3, "RPi 3B+"),
              create_power_lineplot(df4, "RPi 4B"),
              create_power_lineplot(df5, "RPi 5"),
+             nrow = 3)
+dev.off()
+
+png("idle_freq_boxes.png", width = 800, height = 800)
+grid.arrange(create_power_boxplot(df3, "RPi 3B+"),
+             create_power_boxplot(df4, "RPi 4B"),
+             create_power_boxplot(df5, "RPi 5"),
              nrow = 3)
 dev.off()

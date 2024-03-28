@@ -30,7 +30,7 @@ PHASE_MARKER_FILE = "phase_marker" # marks the phase name (needed due to reboots
 TIMESTAMP_FILE = "phase_times" # marks the times on which each phase has started and ended
 CONFIG_FILE = "/boot/firmware/config.txt"
 RPI3_MODEL = "Raspberry Pi 3 Model B Plus Rev 1.3"
-ETH_INTERFACE = "eth0"
+ETHERNET_INTERFACE = "eth0"
 COOL_OFF_WAIT = 10
 
 def reboot():
@@ -40,9 +40,12 @@ def get_model():
     with open('/proc/device-tree/model') as f:
         return f.read()[0:-1]
 
+def disable_ethernet():
+    system(f"sudo ip link set {ETHERNET_INTERFACE} down")
+
 def disable_usb_and_ethernet():
-    system(f"sudo ifconfig {ETH_INTERFACE} down")
-    # This USB option only works on RPi 3B+. On the 3B+ model, this also disables Ethernet
+    disable_ethernet()
+    # This USB option only works on RPi 3B+. On the 3B+ model, this also disables the Ethernet controller
     if get_model() == RPI3_MODEL:
         system("echo '1-1' | sudo tee /sys/bus/usb/drivers/usb/unbind")
 
@@ -52,10 +55,10 @@ def add_time_phase_entry(timestamp, entry):
 
 def write_phase_name(phase):
     with open(PHASE_MARKER_FILE, "w") as f:
-        return f.write(phase)
+        f.write(phase)
 
 def pop_config():
-    system(f'sed -i "$ d" {CONFIG_FILE}')
+    system(f'sudo sed -i "$ d" {CONFIG_FILE}')
 
 def push_config(config):
     with open(CONFIG_FILE, "a") as f:
@@ -68,11 +71,11 @@ def wait_measurement_time(phase_name):
 
 # Init phase. First wait for the given time to allow for taking measurements of the unmodified state
 # After, set the persistent changes and reboot.
-# NOTE: USB and Ethernet must be disabled separately on each phase due to no config options for them (to my knowledge)
+# NOTE: USB and Ethernet must be disabled separately on each phase due to no persistent config options existing for them (to my knowledge)
 def init():
     # Header.
     with open(TIMESTAMP_FILE, "w") as f:
-        f.write("time_s, phase\n")
+        f.write("time_s,phase\n")
     wait_measurement_time("start")
     # config options: WiFi, Bluetooth, HDMI, PCIE
     with open(CONFIG_FILE, "a") as f:
@@ -202,13 +205,14 @@ def eth():
 # config stack: pcie, hdmi, bt, wifi
 def usb():
     # This time disable only the Ethernet interface and leave the USB enabled
-    system(f"sudo ifconfig {ETH_INTERFACE} down")
+    disable_ethernet()
     sleep(COOL_OFF_WAIT)
     wait_measurement_time("usb")
     write_phase_name("done")
     reboot()
 
 def main():
+    sleep(COOL_OFF_WAIT)
     phase = None
     if not path.isfile(PHASE_MARKER_FILE):
         init()

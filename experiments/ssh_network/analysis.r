@@ -47,7 +47,7 @@ for (wait_time in c(1, 5, 10, 15, 20)) {
   }
 }
 
-# ANOVA and Kruskal-Wallis for 10, 15, 20 seconds
+# ANOVA and Kruskal-Wallis for 5, 10, 15 seconds
 print(summary(aov(power_mW ~ wait_time_s, data = df3[df3$with_print == TRUE & (df3$wait_time_s == "10 s" | df3$wait_time_s == "15 s"),])))
 print(summary(aov(power_mW ~ wait_time_s, data = df4[df4$with_print == TRUE & (df4$wait_time_s == "10 s" | df4$wait_time_s == "15 s"),])))
 print(summary(aov(power_mW ~ wait_time_s, data = df5[df5$with_print == TRUE & (df5$wait_time_s == "10 s" | df5$wait_time_s == "15 s"),])))
@@ -109,6 +109,7 @@ make_barplot_for_mean_power <- function(df, title) {
       geom_bar(show.legend = FALSE, stat = "identity", position = "dodge") +
       scale_x_discrete(limits = phases, labels = phases) +
       labs(x = "Time between messages (s)", y = "Mean power consumption (mW)") +
+      geom_text(aes(label = round(m, 2)), colour = "black", angle = 90, hjust = 1.5, position = position_dodge(width = .9)) +
       ggtitle(title)
 }
 
