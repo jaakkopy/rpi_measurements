@@ -47,6 +47,12 @@ compare_to_all_disabled(df3)
 compare_to_all_disabled(df4)
 compare_to_all_disabled(df5)
 
+# How much does enabling WiFi increase the mean standard deviation?
+(sd(df3[df3$phase == "wifi",]$power_mW) / sd(df3[df3$phase == "all",]$power_mW) - 1)*100
+(sd(df4[df3$phase == "wifi",]$power_mW) / sd(df4[df4$phase == "all",]$power_mW) - 1)*100
+(sd(df5[df3$phase == "wifi",]$power_mW) / sd(df5[df5$phase == "all",]$power_mW) - 1)*100
+
+
 p1 <- df %>%
   group_by(device, phase) %>%
   summarize(m = mean(power_mW)) %>%
@@ -55,7 +61,7 @@ p1 <- df %>%
   scale_x_discrete(limits = phases, labels = names(phases)) +
   geom_text(aes(label = round(m, 2)), colour = "black", angle = 90, hjust = 1.5, position = position_dodge(width = .9)) +
   guides(fill = guide_legend(title = "Device")) +
-  labs(x = "Phase", y = "Mean power consumption (mW)")
+  labs(x = "Enabled feature", y = "Mean power consumption (mW)")
 
 p1
 
@@ -65,7 +71,7 @@ p2 <- df %>%
   geom_boxplot() +
   scale_x_discrete(limits = phases, labels = names(phases)) +
   guides(fill = guide_legend(title = "Device"), color = guide_legend(title = "Device")) +
-  labs(x = "Phase", y = "Power consumption (mW)")
+  labs(x = "Enabled feature", y = "Power consumption (mW)")
 
 p2
 

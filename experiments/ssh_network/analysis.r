@@ -20,16 +20,6 @@ measurements_to_df <- function(prefix) {
   df
 }
 
-set_mean_bandwidth <- function(df, df_band) {
-  df$mean_transmission_bandwidth_bps <- rep(NA, times = nrow(df))
-  for (wait_time in c(1, 5, 10, 15)) {
-    x <- paste(wait_time, "s")
-    mb <- mean(df_band[df_band$wait_time_s == x,]$transmit_bandwidth_bytes_per_s)
-    df[df$wait_time_s == x,]$mean_transmission_bandwidth_bps <- rep(mb, times = nrow(df[df$wait_time_s == x,]))
-  }
-  df
-}
-
 df3 <- measurements_to_df("./measurement_data/rpi3")
 df3_bandwidth <- measurements_to_df("./bandwidth_data/rpi3")
 df4 <- measurements_to_df("./measurement_data/rpi4")

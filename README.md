@@ -14,7 +14,7 @@ python measurement.py a l t > out.csv
 where:
 - a = The bluetooth address of your UM25C device. The address can be found with bluetoothctl, for example.
 - l = Measurement time. 
-- t = Wait time between polling in seconds
+- t = Wait time target between polling in seconds (time between measurements can vary due to delays/errors in response)
 
 With ctrl + C the measurement program can be stopped without issue before the time is up.
 

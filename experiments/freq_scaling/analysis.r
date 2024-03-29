@@ -62,8 +62,35 @@ df5 <- combine_cases(
 )
 df5 <- df5[df3$power_mW > 0,]
 
+
+relative_power_increase <- function(data, wifi_bt) {
+  df <- data[data$wifi_bt == wifi_bt,]
+  freqs <- unique(df$freq_GHz)
+  f1 <- freqs[1]
+  p1 <- mean(df[df$freq_GHz == f1,]$power_mW)
+  for (f2 in freqs[-1]) {
+    p2 <- mean(df[df$freq_GHz == f2,]$power_mW)
+    print(paste(f1, "to", f2, ":", (p2/p1 - 1) * 100, "%"))
+    p1 <- p2
+    f1 <- f2
+  }
+  print("Relative difference between highest and lowest frequencies:")
+  f1 <- min(freqs)
+  f2 <- max(freqs)
+  p1 <- mean(df[df$freq_GHz == f1,]$power_mW)
+  p2 <- mean(df[df$freq_GHz == f2,]$power_mW)
+  print(paste(f1, "to", f2, ":", (p2/p1 - 1) * 100, "%"))
+}
+
+relative_power_increase(df3, TRUE)
+relative_power_increase(df4, TRUE)
+relative_power_increase(df5, TRUE)
+
+relative_power_increase(df3, FALSE)
+relative_power_increase(df4, FALSE)
+relative_power_increase(df5, FALSE)
+
 library(ggplot2)
-library(ggrepel)
 library(dplyr)
 require(gridExtra)
 
@@ -95,6 +122,12 @@ create_power_boxplot <- function(df, title) {
     stat_summary(fun.y=mean, geom="point", shape=20, size=3, color="black",
              position = position_dodge2(width = 0.75, preserve = "single")) +
     labs(x = "CPU clock frequency (GHz)", y = "Power consumption (mW)", title = title)
+}
+
+create_power_histogram <- function(df, wifi_bt, title) {
+  df[df$wifi_bt == wifi_bt,] %>%
+    ggplot(aes(x = power_mW, color=freq_GHz)) +
+    geom_histogram()
 }
 
 png("idle_freq_graphs.png", width = 800, height = 800)
