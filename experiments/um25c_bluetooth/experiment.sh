@@ -15,7 +15,7 @@ for poll_time in 1 5 10 15
 do
     for i in {1..250}
     do
-        python ../../measurement.py ${bluetooth_addr} 30 ${poll_time} > ./measurement_data/${poll_time}s_i${i}.csv
+        python ../../measurement.py ${bluetooth_addr} 30 ${poll_time} y > ./measurement_data/testi${poll_time}s_i${i}.csv
         sleep 15
     done
 done

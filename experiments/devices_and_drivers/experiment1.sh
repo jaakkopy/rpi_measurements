@@ -13,7 +13,7 @@ measure_interval=1
 
 
 measure () {
-    python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} > ./measurement_data/$device-$1.csv
+    python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} n > ./measurement_data/$device-$1.csv
 }
 
 echo "Start"

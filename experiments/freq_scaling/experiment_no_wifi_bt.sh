@@ -16,5 +16,5 @@ sleep 3
 # Read the amount of frequencies to calculate the experiment time
 x=$(cat amount_frequencies)
 
-python ../../measurement.py ${bluetooth_addr} $((${x} * ${measuretime})) 1 > ./measurement_data/$outfileprefix-freq.csv
+python ../../measurement.py ${bluetooth_addr} $((${x} * ${measuretime})) 1 n > ./measurement_data/$outfileprefix-freq.csv
 rm amount_frequencies

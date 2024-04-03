@@ -50,7 +50,7 @@ def print_values(t, v, c, p, e):
     print(f"{t},{v},{c / 10},{p},{e}")
 
 
-def main(addr: str, loop_time: float, poll_wait: float):
+def main(addr: str, loop_time: float, poll_wait: float, exact: str):
     signal.signal(signal.SIGINT, interrupt) 
     sock = None
     sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -70,7 +70,14 @@ def main(addr: str, loop_time: float, poll_wait: float):
     i = ceil(loop_time/poll_wait)
     start = time()
     dt = 0
-    while dt < loop_time and keep_looping:
+    while True:
+        if not keep_looping:
+            break
+        if exact == "y":
+            if i == 0:
+                break
+        elif dt >= loop_time:
+            break
         dt = time() - start
         r = get_measurements(sock)
         print_values(time(), *unpack_vcpe(r))
@@ -84,4 +91,5 @@ if __name__ == "__main__":
     addr = argv[1] # bluetooth address
     loop_time = float(argv[2]) # loop time in seconds
     poll_wait = float(argv[3]) # wait time between polling in seconds
-    main(addr, loop_time, poll_wait)
+    exact = argv[4] # allow going possibly over the time limit to ensure collecting ceil(loop_time/poll_wait) amount of observations
+    main(addr, loop_time, poll_wait, exact)

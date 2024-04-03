@@ -35,12 +35,19 @@ df <- rbind(df3, df4, df5)
 
 compare_to_all_disabled <- function(df) {
   ps <- unique(df$phase)
+  min_p <- mean(df[df$phase == "all",]$power_mW)
+  max_p <- mean(df[df$phase == "all",]$power_mW)
   for (x in ps) {
     print(x)
-    print(mean(df[df$phase == x,]$power_mW))
+    p <- mean(df[df$phase == x,]$power_mW)
+    min_p <- min(min_p, p)
+    max_p <- max(max_p, p)
+    print(p)
     print( (mean(df[df$phase == x,]$power_mW) / mean(df[df$phase == "all",]$power_mW) - 1) * 100 )
     print(t.test(df[df$phase == x,]$power_mW, df[df$phase == "all",]$power_mW), conf.level = 0.95)
   }
+  print("Greatest reduction:")
+  print((1 - min_p / max_p) * 100)
 }
 
 compare_to_all_disabled(df3)

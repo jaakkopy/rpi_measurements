@@ -9,12 +9,13 @@ The `experiments` folder contains the code for all of the experiments. There are
 
 To run and redirect the output to a file:
 ```
-python measurement.py a l t > out.csv
+python measurement.py a l t e > out.csv
 ```
 where:
-- a = The bluetooth address of your UM25C device. The address can be found with bluetoothctl, for example.
-- l = Measurement time. 
-- t = Wait time target between polling in seconds (time between measurements can vary due to delays/errors in response)
+- `a` = The bluetooth address of your UM25C device. The address can be found with bluetoothctl, for example.
+- `l` = Measurement time. 
+- `t` = Wait time target between polling in seconds (time between measurements can vary due to delays/errors in response)
+- `e` = "y" or "n". If `e` = "y", exactly `ceil(l/t)` measurements will be collected. If `e` = "n", the measurement process will be stopped when `l` seconds have passed even if less than `ceil(l/t)` measurements have been collected.
 
 With ctrl + C the measurement program can be stopped without issue before the time is up.
 
