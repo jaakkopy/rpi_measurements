@@ -57,15 +57,22 @@ means <- data.frame("mean" = c(mean(p1_energy), mean(p2_energy), mean(p3_energy)
                     "time" = c("1s", "5s", "10s", "15s"))
 
 library(ggplot2)
+library(dplyr)
 require(gridExtra)
 
-p1 <- ggplot(data = means, aes(y = mean, x = time)) +
-  geom_bar(stat = "identity") +
-  scale_x_discrete(limits = c("1s", "5s", "10s", "15s")) +
-  labs(x = "Wait time between polls (s)", y = "Mean energy consumption from 30s period (mWh)")
+make_hist <- function(energy_consumed, title) {
+  data.frame(val = energy_consumed) %>%
+    ggplot(., aes(val)) +
+    geom_histogram(bins = 10, color="black", fill="white") +
+    labs(x = "Energiankulutus (mWh) 30 s ajanjaksolta", y = "Frekvenssi") +
+    ggtitle(title)
+}
 
-p1
+p1 <- make_hist(p1_energy, "Odotusaika 1 s")
+p2 <- make_hist(p2_energy, "Odotusaika 5 s")
+p3 <- make_hist(p3_energy, "Odotusaika 10 s")
+p4 <- make_hist(p4_energy, "Odotusaika 15 s")
 
 png("average_energy_and_poll_frequency.png", width = 400, height = 400)
-p1
+grid.arrange(p1, p2, p3, p4)
 dev.off()

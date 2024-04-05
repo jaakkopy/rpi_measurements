@@ -54,11 +54,12 @@ def main(loop_time: float, check_interval: float, interface: str, out_file: str,
     i = 0
     iterations = ceil(loop_time / check_interval)
     t = threading.Thread(target=bandwidth_measurement_thread, args=(loop_time, interface, out_file))
+    message = "message"
     t.start()
     for _ in range(iterations):
         i += 1
         if should_print == 'y':
-            print(i)
+            print(message)
             stdout.flush() # To prevent buffering.
         sleep(check_interval)
     t.join()

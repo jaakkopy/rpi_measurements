@@ -60,28 +60,48 @@ compare_to_all_disabled(df5)
 (sd(df5[df3$phase == "wifi",]$power_mW) / sd(df5[df5$phase == "all",]$power_mW) - 1)*100
 
 
-p1 <- df %>%
-  group_by(device, phase) %>%
-  summarize(m = mean(power_mW)) %>%
-  ggplot(aes(fill = device, x = phase, y = m)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_x_discrete(limits = phases, labels = names(phases)) +
-  geom_text(aes(label = round(m, 2)), colour = "black", angle = 90, hjust = 1.5, position = position_dodge(width = .9)) +
-  guides(fill = guide_legend(title = "Device")) +
-  labs(x = "Enabled feature", y = "Mean power consumption (mW)")
+make_bars <- function(df, legend_title, x_title, y_title, phases) {
+  df %>%
+    group_by(device, phase) %>%
+    summarize(m = mean(power_mW)) %>%
+    ggplot(aes(fill = device, x = phase, y = m)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_x_discrete(limits = phases, labels = names(phases)) +
+    geom_text(aes(label = round(m, 0)), colour = "black", angle = 90, hjust = 1.5, position = position_dodge(width = .9)) +
+    guides(fill = guide_legend(title = legend_title)) +
+    labs(x = x_title, y = y_title)
+}
 
+make_boxes <- function(df, legend_title, x_title, y_title, phases) {
+  df %>%
+    group_by(device, phase) %>%
+    ggplot(aes(color = device, fill = device, x = phase, y = power_mW)) +
+    geom_boxplot() +
+    scale_x_discrete(limits = phases, labels = names(phases)) +
+    guides(fill = guide_legend(title = legend_title), color = guide_legend(title = legend_title)) +
+    labs(x = x_title, y = y_title)
+}
+
+# In English
+p1 <- make_bars(df, "Device", "Enabled feature", "Mean power consumption (mW)", phases)
 p1
 
-p2 <- df %>%
-  group_by(device, phase) %>%
-  ggplot(aes(color = device, fill = device, x = phase, y = power_mW)) +
-  geom_boxplot() +
-  scale_x_discrete(limits = phases, labels = names(phases)) +
-  guides(fill = guide_legend(title = "Device"), color = guide_legend(title = "Device")) +
-  labs(x = "Enabled feature", y = "Power consumption (mW)")
-
+p2 <- make_boxes(df, "Device", "Enabled feature", "Power consumption (mW)", phases)
 p2
 
 png("devices.png", width = 800, height = 800)
+grid.arrange(p1, p2, nrow = 2)
+dev.off()
+
+# Suomeksi
+phases_suom <- unique(phase_times3$phase)
+names(phases_suom) <- c("Kaikki\nkäytössä", "Kaikki pois\nkäytöstä", "CPU", "UART", "PCIE", "HDMI", "BT", "WiFi", "ETH", "USB")
+p1 <- make_bars(df, "Laite", "Käyttöönotettu ominaisuus", "Tehon keskiarvo (mW)", phases_suom)
+p1
+
+p2 <- make_boxes(df, "Laite", "Käyttöönotettu ominaisuus", "Teho (mW)", phases_suom)
+p2
+
+png("devices_suom.png", width = 800, height = 800)
 grid.arrange(p1, p2, nrow = 2)
 dev.off()

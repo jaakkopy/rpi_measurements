@@ -98,9 +98,6 @@ kruskal.test(power_mW ~ freq_GHz, data=df3[df3$wifi_bt == FALSE & df3$freq_GHz >
 kruskal.test(power_mW ~ freq_GHz, data=df4[df4$wifi_bt == FALSE & df4$freq_GHz > 0.6,])
 kruskal.test(power_mW ~ freq_GHz, data=df5[df5$wifi_bt == FALSE & df5$freq_GHz > 0.6,])
 
-# pairwise.wilcox.test?
-
-
 create_power_lineplot <- function(df, title) {
   freqs <- seq(min(df$freq_GHz), max(df$freq_GHz), 0.1)
   df %>%
