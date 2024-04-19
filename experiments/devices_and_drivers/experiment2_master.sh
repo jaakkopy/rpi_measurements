@@ -8,6 +8,8 @@ measure_time_wait=1000
 cool_off_wait=10
 reboot_time=40 # might be higher (or lower) than needed depending on the setup; can be modified without harm based on how safe you want the wait time to be 
 
+mkdir -p ./measurement_data
+
 user=$1
 host=$2
 bluetooth_addr=$3

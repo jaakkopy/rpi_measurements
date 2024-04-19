@@ -4,6 +4,8 @@ bluetooth_addr=$1
 user=$2
 host=$3
 
+mkdir -p ./measurement_data
+
 # To minimize variance in power consumption measurements, stop wifi and bluetooth
 # The process will block due to no response
 ssh ${user}@${host} "sudo rfkill block bluetooth && sudo rfkill block wifi" &

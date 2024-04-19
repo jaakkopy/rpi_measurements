@@ -54,7 +54,7 @@ compare_to_all_disabled(df3)
 compare_to_all_disabled(df4)
 compare_to_all_disabled(df5)
 
-# How much does enabling WiFi increase the mean standard deviation?
+# How much does enabling WiFi increase the standard deviation?
 (sd(df3[df3$phase == "wifi",]$power_mW) / sd(df3[df3$phase == "all",]$power_mW) - 1)*100
 (sd(df4[df3$phase == "wifi",]$power_mW) / sd(df4[df4$phase == "all",]$power_mW) - 1)*100
 (sd(df5[df3$phase == "wifi",]$power_mW) / sd(df5[df5$phase == "all",]$power_mW) - 1)*100

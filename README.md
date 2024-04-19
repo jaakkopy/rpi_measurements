@@ -2,10 +2,11 @@
 Experiments for measuring the energy consumption of a Raspberry Pi device.
 
 # Experiments
-The `experiments` folder contains the code for all of the experiments. There are also  R scripts for analysis and generating plots from the data.
+The `experiments` folder contains the code for all of the experiments. There are also  R scripts for analysis and generating plots from the data. Each experiment directory has a readme file with more information about the experiment.
 
 # measurement.py
-- Reads measurement values from a RuiDeng UM25C measurement device and writes them to stdout in CSV format.
+- Reads measurement values (current, voltage, power, energy) from a RuiDeng UM25C measurement device and writes them to stdout in CSV format with timestamps.
+- Used in every experiment.
 
 To run and redirect the output to a file:
 ```
@@ -14,7 +15,7 @@ python measurement.py a l t e > out.csv
 where:
 - `a` = The bluetooth address of your UM25C device. The address can be found with bluetoothctl, for example.
 - `l` = Measurement time. 
-- `t` = Wait time target between polling in seconds (time between measurements can vary due to delays/errors in response)
+- `t` = Wait time target between polling in seconds (time between measurements can vary due to delays/errors in responses from the meter)
 - `e` = "y" or "n". If `e` = "y", exactly `ceil(l/t)` measurements will be collected. If `e` = "n", the measurement process will be stopped when `l` seconds have passed even if less than `ceil(l/t)` measurements have been collected.
 
 With ctrl + C the measurement program can be stopped without issue before the time is up.
@@ -31,3 +32,8 @@ With ctrl + C the measurement program can be stopped without issue before the ti
 # The R scripts
 - Not meant to be ran as a script from the command line, but rather used in the interactive mode to run commands recorded in the R file.
 - These files only record the R instructions that I used for my specific use case
+
+# A schema of the measurement setup used
+For context, the setup that the experiments are created around is presented in the following picture:
+
+![The schema of the measurement system setup](measurement_system_schema.png)

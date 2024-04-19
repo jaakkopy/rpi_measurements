@@ -6,6 +6,8 @@ bluetooth_addr=$3
 outfileprefix=$4
 measuretime=800
 
+mkdir -p ./measurement_data
+
 # Starts a script RPi and begins collecting measurements
 # The script makes the pi iterate over the allowed frequencies of the userspace governor and wait for the given time between each frequency change
 

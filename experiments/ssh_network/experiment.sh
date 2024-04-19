@@ -6,6 +6,10 @@ bluetooth_addr=$3  # measurement device bluetooth address
 interface=$4       # which interface to check (e.g wlan0)
 fileprefix=$5
 
+# Make sure the necessary directories exist
+mkdir -p ./measurement_data
+mkdir -p ./bandwidth_data
+
 measuretime=1500
 
 for poll_wait in 1 5 10 15

@@ -3,5 +3,6 @@ a.out
 addr
 *_data
 *.png
+!measurement_system_schema.png
 tmp.sh
 backup_measurements.tar.gz

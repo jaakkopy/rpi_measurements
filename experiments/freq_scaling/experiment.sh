@@ -5,6 +5,8 @@ host=$2
 bluetooth_addr=$3  # measurement device bluetooth address
 outfileprefix=$4
 
+mkdir -p ./measurement_data
+
 # Set the frequency governor to userspace
 ssh ${user}@${host} "echo userspace | sudo tee /sys/devices/system/cpu/cpufreq/policy0/scaling_governor > /dev/null;"
 

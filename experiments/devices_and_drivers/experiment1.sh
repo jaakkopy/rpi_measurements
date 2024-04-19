@@ -11,6 +11,7 @@ measure_time=800
 after_command_wait=30
 measure_interval=1
 
+mkdir -p ./measurement_data
 
 measure () {
     python ../../measurement.py ${bluetooth_addr} ${measure_time} ${measure_interval} n > ./measurement_data/$device-$1.csv

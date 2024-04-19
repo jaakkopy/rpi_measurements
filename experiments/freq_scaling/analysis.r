@@ -79,7 +79,9 @@ relative_power_increase <- function(data, wifi_bt) {
   f2 <- max(freqs)
   p1 <- mean(df[df$freq_GHz == f1,]$power_mW)
   p2 <- mean(df[df$freq_GHz == f2,]$power_mW)
+  print(paste("Highest:", p2, "lowest:", p1))
   print(paste(f1, "to", f2, ":", (p2/p1 - 1) * 100, "%"))
+  print(paste(f1, "from", f2, ":", (p1/p2 - 1) * 100, "%"))
 }
 
 relative_power_increase(df3, TRUE)
