@@ -1,11 +1,12 @@
 # About
-Experiments for measuring the energy consumption of a Raspberry Pi device.
+Experiments for measuring the energy consumption of a Raspberry Pi (RPi) device.
 
 # Experiments
-The `experiments` folder contains the code for all of the experiments. There are also  R scripts for analysis and generating plots from the data. Each experiment directory has a readme file with more information about the experiment.
+- The `experiments` folder contains the code for all of the experiments. There are also  R scripts for analysis and generating plots from the data. Each experiment directory has a readme file with more information about the experiment.
+- Most of the experiments assume that there is an SSH key generated such that the user does not have to keep typing their password if SSH usage is required for running commands on the RPi during the experiment
 
 # measurement.py
-- Reads measurement values (current, voltage, power, energy) from a RuiDeng UM25C measurement device and writes them to stdout in CSV format with timestamps.
+- Reads measurement values (current, voltage, power, accumulated energy) from a RuiDeng UM25C measurement device and writes them to stdout in CSV format with timestamps.
 - Used in every experiment.
 
 To run and redirect the output to a file:
@@ -20,20 +21,7 @@ where:
 
 With ctrl + C the measurement program can be stopped without issue before the time is up.
 
-## References
-- https://sigrok.org/wiki/RDTech_UM_series. For figuring out the UM25C device protocol. The site documents the response format if you wish to extend the program to read other measurements or modify it for other UMxx measurement devices.
-
-
-# Experiment scripts
-- Bash and Python scripts for performing the experiments
-- Most of the experiments assume that there is an SSH key generated such that the user does not have to keep typing their password if SSH usage is required during the experiment
-
-
-# The R scripts
-- Not meant to be ran as a script from the command line, but rather used in the interactive mode to run commands recorded in the R file.
-- These files only record the R instructions that I used for my specific use case
-
 # A schema of the measurement setup used
-For context, the setup that the experiments are created around is presented in the following picture:
+The setup that the experiments are created around is presented in the following picture:
 
 ![The schema of the measurement system setup](measurement_system_schema.png)
