@@ -11,7 +11,7 @@ done
 This script should be registered as a cron job to run on reboot
 1. copy this program to /bin
 2. run sudo crontab -u root -e (this script requires root privileges)
-3. Add to the bottom: @reboot python /bin/this_script.py &
+3. Add this to the bottom of the opened file: "@reboot python /bin/this_script.py &"
 
 The script runs in root mode and writes the results to the /root directory
 
