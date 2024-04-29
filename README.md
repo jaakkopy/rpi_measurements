@@ -13,6 +13,10 @@ An easy way to generate an SSH key goes as follows:
 - On the machine that communicates with the RPi run: `ssh-keygen`
 - Copy the public key to the RPi: `ssh-copy-id -i ~/.ssh/<filename>.pub username@raspberrypihostname` (if the [Raspberry Pi imager](https://www.raspberrypi.com/software/) tool was used to write the operating system, the hostname is likely set to `raspberrypi.local`)
 
+## Resolving common connection issues
+- When trying to form an SSH connection to the RPi, if a connection error occurs, please check that the firewall (commonly `firewalld` or similar service) is not blocking the connection. A simple way to find out if this has an affect is to disable the firewall and try again.
+- If that does not work, it could also be that SSH was not set up when writing the OS image. Then the image should be written again while making sure that the SSH option is selected on the [Raspberry Pi imager](https://www.raspberrypi.com/software/).
+
 # measurement.py
 - Reads measurement values (current, voltage, power, accumulated energy) from a RuiDeng UM25C measurement device and writes them to stdout in CSV format with timestamps.
 - Used in every experiment.
